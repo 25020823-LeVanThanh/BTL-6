@@ -65,15 +65,28 @@ Giữ kiến trúc **Client–Server + JavaFX** theo đề. Mỗi người chỉ
 | File | Việc làm |
 |------|----------|
 | `auction-client/.../ClientApp.java` / `Launcher.java` | Chạy app client |
-| `auction-client/.../ui/MenuNavigator.java` | Điều hướng màn hình theo role |
-| `auction-client/.../ui/view/AuthView.java` + `fxml/auth.fxml` | Đăng nhập / đăng ký |
-| `auction-client/.../ui/view/AdminView.java` + `admin.fxml` | Duyệt sản phẩm |
-| `auction-client/.../ui/view/SellerView.java` + `seller.fxml` | Đăng / quản lý bài |
-| `auction-client/.../ui/view/AuctionRoomView.java` + `auction-room.fxml` | Phòng đấu realtime |
-| `auction-client/.../ui/view/AuctionListView.java` + `auction-list.fxml` | Danh sách phiên |
-| `auction-client/.../ui/view/ProductDetailView.java` + `product-detail.fxml` | Chi tiết sản phẩm |
-| `auction-client/.../ui/util/NotificationHelper.java` | Thông báo bị outbid |
-| `auction-client/.../ui/util/ConsolePrinter.java` | Format bảng / log UI (nếu cần) |
+| `auction-client/.../ui/view/MainController.java` + `fxml/MainView.fxml` | Khung đăng nhập, đổi theme |
+| `auction-client/.../ui/view/LoginController.java` + `fxml/LoginView.fxml` | Đăng nhập |
+| `auction-client/.../ui/view/RegisterController.java` + `fxml/RegisterView.fxml` | Đăng ký |
+| `auction-client/.../ui/view/DashboardController.java` + `fxml/DashboardView.fxml` | Sidebar, điều hướng theo role |
+| `auction-client/.../ui/view/HomeController.java` + `fxml/HomeView.fxml` | Trang chủ |
+| `auction-client/.../ui/view/MyItemsController.java` + `fxml/MyItemsView.fxml` | Vật phẩm của tôi |
+| `auction-client/.../ui/view/CreateItemController.java` + `fxml/CreateItemView.fxml` | Đăng sản phẩm |
+| `auction-client/.../ui/view/CreateAuctionController.java` + `fxml/CreateAuctionView.fxml` | Tạo phiên đấu giá |
+| `auction-client/.../ui/view/AuctionListController.java` + `fxml/AuctionListView.fxml` | Danh sách phiên |
+| `auction-client/.../ui/view/AuctionDetailController.java` + `fxml/AuctionDetailView.fxml` | Chi tiết phiên |
+| `auction-client/.../ui/view/BiddingController.java` + `fxml/BiddingView.fxml` | Phòng đấu realtime |
+| `auction-client/.../ui/view/ItemHistoryController.java` + `fxml/ItemHistoryView.fxml` | Lịch sử vật phẩm |
+| `auction-client/.../ui/view/PaymentController.java` + `fxml/PaymentView.fxml` | Thanh toán |
+| `auction-client/.../ui/view/PaymentCheckoutController.java` + `fxml/PaymentCheckoutView.fxml` | Nạp tiền |
+| `auction-client/.../ui/view/WalletController.java` + `fxml/WalletView.fxml` | Ví tiền |
+| `auction-client/.../ui/view/ProfileController.java` + `fxml/ProfileView.fxml` | Hồ sơ cá nhân |
+| `auction-client/.../ui/view/VoiceConfigController.java` + `fxml/VoiceConfigView.fxml` | Cấu hình giọng nói |
+| `auction-client/.../ui/view/AdminUsersController.java` + `fxml/AdminUsersView.fxml` | Quản lý người dùng |
+| `auction-client/.../ui/view/AdminItemsController.java` + `fxml/AdminItemsView.fxml` | Duyệt sản phẩm |
+| `auction-client/.../ui/view/AdminItemDetailController.java` + `fxml/AdminItemDetailView.fxml` | Chi tiết duyệt sản phẩm |
+| `auction-client/.../ui/view/AdminFinancialController.java` + `fxml/AdminFinancialView.fxml` | Kiểm toán tài chính |
+| `auction-client/.../ui/view/AdminSystemMonitorController.java` + `fxml/AdminSystemMonitorView.fxml` | Giám sát hệ thống |
 | `auction-client/.../network/*` | Kết nối socket phía client |
 | `auction-client/.../util/MockDataUtil.java` | Fake data để test UI khi backend chưa xong |
 | `README.md` | Hướng dẫn cài đặt / chạy |
