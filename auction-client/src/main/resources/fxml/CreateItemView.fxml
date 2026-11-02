@@ -6,7 +6,7 @@
 <?import javafx.scene.text.*?>
 <?import javafx.scene.image.ImageView?>
 
-<ScrollPane fitToWidth="true" prefHeight="600.0" prefWidth="700.0" styleClass="dark-bg-scroll" style="-fx-border-color: transparent;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.demo.ui.controller.CreateItemController">
+<ScrollPane fitToWidth="true" prefHeight="600.0" prefWidth="700.0" styleClass="dark-bg-scroll" style="-fx-border-color: transparent;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auctionuet.client.ui.view.CreateItemController">
     <content>
         <VBox alignment="TOP_CENTER" spacing="15.0" styleClass="dark-bg">
             <padding>
