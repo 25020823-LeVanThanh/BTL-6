@@ -2,6 +2,7 @@ package com.auctionuet.client.ui.view;
 
 import com.auctionuet.client.network.AuthClient;
 import com.auctionuet.client.network.ServerConnection;
+import com.auctionuet.client.util.ValidationUtil;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -43,22 +44,15 @@ public class RegisterController {
             return;
         }
 
-        if (username.isBlank() || password.isBlank() || email.isBlank()) {
-            showError("Lỗi: Vui lòng điền đủ thông tin!");
-            return;
-        }
-
-        if (!password.equals(confirm)) {
-            showError("Lỗi: Mật khẩu nhập lại không khớp!");
-            return;
-        }
-
         String host = serverHostField.getText().isBlank() ? "localhost" : serverHostField.getText().trim();
         int port;
         try {
-            port = Integer.parseInt(serverPortField.getText().trim());
-        } catch (NumberFormatException e) {
-            showError("Lỗi: Port phải là số!");
+            ValidationUtil.validateUsername(username);
+            ValidationUtil.validateEmail(email);
+            ValidationUtil.validatePasswordConfirm(password, confirm);
+            port = ValidationUtil.parsePort(serverPortField.getText());
+        } catch (IllegalArgumentException e) {
+            showError("Lỗi: " + e.getMessage());
             return;
         }
 

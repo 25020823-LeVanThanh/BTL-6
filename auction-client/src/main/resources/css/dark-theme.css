@@ -49,21 +49,21 @@
 }
 
 .text-field, .password-field, .text-area, .date-picker > .text-field { -fx-background-color: #16213e; -fx-text-fill: #e0e0e0; -fx-border-color: #0f3460; -fx-prompt-text-fill: #ffffff; }
-.text-field:focused, .password-field:focused, .text-area:focused, .date-picker > .text-field:focused { -fx-border-color: #e94560; -fx-effect: dropshadow(gaussian, #e94560, 10, 0, 0, 0); }
+.text-field.focused, .password-field.focused, .text-area.focused, .date-picker > .text-field.focused { -fx-border-color: #e94560; -fx-effect: dropshadow(gaussian, #e94560, 10, 0, 0, 0); }
 
 .text-area .scroll-pane { -fx-background-color: transparent; }
 .text-area .scroll-pane .viewport { -fx-background-color: transparent; }
 .text-area .scroll-pane .content { -fx-background-color: transparent; }
 
 .combo-box { -fx-background-color: #16213e; -fx-border-color: #0f3460; }
-.combo-box:focused { -fx-border-color: #e94560; -fx-effect: dropshadow(gaussian, #e94560, 10, 0, 0, 0); }
+.combo-box.focused { -fx-border-color: #e94560; -fx-effect: dropshadow(gaussian, #e94560, 10, 0, 0, 0); }
 .combo-box > .list-cell { -fx-text-fill: #e0e0e0; }
 .combo-box .arrow { -fx-background-color: #e0e0e0; }
 .combo-box .arrow-button { -fx-background-color: transparent; }
 .combo-box-popup .list-view { -fx-background-color: #16213e; -fx-border-color: #0f3460; }
 .combo-box-popup .list-view .list-cell { -fx-text-fill: #ffffff; -fx-background-color: #16213e; }
 .combo-box-popup .list-view .list-cell:hover { -fx-background-color: #e94560; -fx-text-fill: white; }
-.combo-box-popup .list-view .list-cell:selected { -fx-background-color: #ff6b6b; -fx-text-fill: white; }
+.combo-box-popup .list-view .list-cell.selected { -fx-background-color: #ff6b6b; -fx-text-fill: white; }
 
 .button { -fx-background-color: linear-gradient(to right, #e94560, #0f3460); -fx-text-fill: white; }
 .button:hover { -fx-background-color: linear-gradient(to right, #ff6b6b, #1a5276); }
@@ -206,7 +206,7 @@
     -fx-table-cell-border-color: #233250;
 }
 
-.table-view .table-row-cell:odd {
+.table-view .table-row-cell.odd {
     -fx-background-color: #192641;
 }
 
@@ -214,8 +214,8 @@
     -fx-background-color: #203052;
 }
 
-.table-view .table-row-cell:selected,
-.table-view .table-row-cell:selected:hover {
+.table-view .table-row-cell.selected,
+.table-view .table-row-cell.selected:hover {
     -fx-background-color: #0f3460;
 }
 
@@ -223,7 +223,7 @@
     -fx-text-fill: #e0e0e0;
     -fx-border-color: transparent transparent #233250 transparent;
 }
-.table-view .table-row-cell:selected .table-cell {
+.table-view .table-row-cell.selected .table-cell {
     -fx-text-fill: #ffffff;
 }
 
@@ -252,16 +252,16 @@
     -fx-text-fill: #ffffff;
 }
 
-.list-view .list-cell:odd {
+.list-view .list-cell.odd {
     -fx-background-color: #192641;
 }
 
-.list-view .list-cell:hover {
+.list-view .list-cell.hover {
     -fx-background-color: #203052;
 }
 
-.list-view .list-cell:selected,
-.list-view .list-cell:selected:hover {
+.list-view .list-cell.selected,
+.list-view .list-cell.selected:hover {
     -fx-background-color: #0f3460;
     -fx-text-fill: #ffffff;
 }
@@ -491,7 +491,7 @@
 .scroll-bar .thumb:hover {
     -fx-background-color: #4f6f9c; /* Màu xanh xám sáng hơn khi hover */
 }
-.scroll-bar .thumb:pressed {
+.scroll-bar .thumb.pressed {
     -fx-background-color: #e94560; /* Màu đỏ hồng nhấn mạnh khi kéo cuộn */
 }
 /* Làm gọn các nút tăng/giảm ở hai đầu thanh cuộn */
