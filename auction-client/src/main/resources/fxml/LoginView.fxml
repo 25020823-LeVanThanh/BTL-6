@@ -30,10 +30,7 @@
         <!-- Server Configuration -->
         <VBox spacing="5.0">
             <Label styleClass="text-secondary" text="Cấu hình Server" />
-            <HBox spacing="10.0">
-                <TextField fx:id="serverHostField" promptText="Host (VD: localhost)" text="localhost" HBox.hgrow="ALWAYS" />
-                <TextField fx:id="serverPortField" prefWidth="80.0" promptText="Port" text="3307" />
-            </HBox>
+            <TextField fx:id="serverPortField" prefWidth="80.0" promptText="Port" text="3307" />
         </VBox>
 
         <!-- Form fields -->

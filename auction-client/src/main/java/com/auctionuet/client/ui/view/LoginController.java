@@ -12,7 +12,6 @@ import javafx.scene.control.TextField;
 public class LoginController {
     @FXML private TextField usernameField;
     @FXML private PasswordField passwordField;
-    @FXML private TextField serverHostField;
     @FXML private TextField serverPortField;
     @FXML private Label errorLabel;
     @FXML private javafx.scene.control.Button loginButton;
@@ -34,7 +33,7 @@ public class LoginController {
             return;
         }
 
-        String host = serverHostField.getText().isBlank() ? "localhost" : serverHostField.getText().trim();
+        String host = "localhost";
         int port;
         try {
             port = Integer.parseInt(serverPortField.getText().trim());
