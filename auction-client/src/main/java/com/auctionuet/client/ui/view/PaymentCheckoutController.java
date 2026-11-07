@@ -25,6 +25,11 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
 
+/**
+ * Popup nạp tiền: hiện thông tin chuyển khoản và mã QR VietQR.
+ * Nội dung chuyển khoản = tên đăng nhập + mã 5 ký tự, để đối soát giao dịch.
+ * Bấm xác nhận thì gọi API cộng tiền vào ví.
+ */
 public class PaymentCheckoutController {
     // Thông tin ngân hàng nhận thanh toán (MB Bank thực tế)
     private static final String BANK_ID = "MB";
@@ -88,6 +93,7 @@ public class PaymentCheckoutController {
         syncCheckoutWidth(checkoutFlow.getWidth());
     }
 
+    /** Cửa sổ hẹp thì xếp hai cột thành một cột; cửa sổ rộng thì cột QR cố định 340px. */
     private void syncCheckoutWidth(double availableWidth) {
         if (checkoutLeftColumn == null || checkoutActionCard == null) {
             return;

@@ -27,6 +27,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Admin bật/tắt chế độ duyệt sản phẩm và xử lý từng sản phẩm.
+ * Tắt chế độ sẽ duyệt hết sản phẩm đang chờ, nên có hộp xác nhận.
+ * Công tắc đổi trạng thái ngay trên UI, nếu server lỗi thì kéo về trạng thái cũ.
+ */
 public class AdminItemsController {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final int CARD_COLUMNS = 3;
@@ -41,6 +46,7 @@ public class AdminItemsController {
 
     private final AdminClient adminClient = new AdminClient();
     private boolean approvalEnabled;
+    /** Đang gửi cấu hình lên server: chặn bấm công tắc thêm lần nữa. */
     private boolean settingUpdating;
 
     @FXML

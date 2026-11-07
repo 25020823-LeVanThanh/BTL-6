@@ -27,8 +27,14 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Danh sách thanh toán của bidder thắng phiên.
+ * Chờ thanh toán, đã trả trong 30 ngày, và quá hạn (phiên bị hủy vì không trả, không phải admin hủy).
+ * Tiền trả thêm = giá thắng trừ tiền cọc đã giữ.
+ */
 public class PaymentController {
     private static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    /** Phiên đã trả hoặc quá hạn cũ hơn mốc này không hiện trên màn. */
     private static final int PAID_VISIBLE_DAYS = 30;
     private static final double CARD_GAP = 20.0;
     private static final int MAX_CARD_COLUMNS = 4;
@@ -174,6 +180,10 @@ public class PaymentController {
                 .toList();
     }
 
+    /**
+     * Phiên CANCELED của người thắng, và không có người hủy,
+     * là trường hợp hết hạn thanh toán (server tự hủy).
+     */
     static boolean isExpiredPaymentForWinner(AuctionDTO auction, String currentUserId) {
         return auction != null
                 && auction.getStatus() == AuctionStatus.CANCELED
@@ -279,6 +289,7 @@ public class PaymentController {
         title.setWrapText(true);
 
         double deposit = auction.getDepositAmount();
+        // Số phải trả thêm = giá thắng - cọc. Cọc đã nằm trong ví đóng băng.
         double remaining = Math.max(0, auction.getCurrentPrice() - deposit);
         boolean paid = auction.getStatus() == AuctionStatus.PAID;
         boolean expired = auction.getStatus() == AuctionStatus.CANCELED;

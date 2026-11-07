@@ -9,11 +9,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Gom nhiều phiên của cùng một vật phẩm thành một phiên đại diện.
+ * Ưu tiên phiên còn hiệu lực (chờ thanh toán, đang chạy, sắp mở),
+ * rồi lấy phiên có mốc thời gian mới nhất.
+ */
 final class AuctionViewFilter {
 
     private AuctionViewFilter() {
     }
 
+    /** Mỗi itemId chỉ giữ một phiên đáng xem nhất, thứ tự lần xuất hiện được giữ. */
     static List<AuctionDTO> representativeAuctions(List<AuctionDTO> auctions) {
         Map<String, AuctionDTO> byItemId = new LinkedHashMap<>();
         if (auctions == null) {
@@ -34,6 +40,7 @@ final class AuctionViewFilter {
         return new ArrayList<>(byItemId.values());
     }
 
+    /** Phiên còn chiếm vật phẩm: chưa được tạo phiên mới đè lên. */
     static boolean isBlockingStatus(AuctionStatus status) {
         return status == AuctionStatus.OPEN
                 || status == AuctionStatus.RUNNING
@@ -56,6 +63,12 @@ final class AuctionViewFilter {
         return selected;
     }
 
+    /**
+     * So hai phiên của cùng vật phẩm.
+     * Phiên đang hoạt động thắng phiên đã xong.
+     * Cùng đang hoạt động thì WAITING_PAYMENT > RUNNING > OPEN.
+     * Hòa nhau thì phiên có thời điểm mới hơn thắng.
+     */
     private static boolean isBetterRepresentative(AuctionDTO candidate, AuctionDTO current) {
         boolean candidateActive = isBlockingStatus(candidate.getStatus());
         boolean currentActive = isBlockingStatus(current.getStatus());
@@ -87,6 +100,7 @@ final class AuctionViewFilter {
         return 0;
     }
 
+    /** Chọn mốc thời gian "mới nhất" có sẵn trên phiên để so sánh. */
     private static LocalDateTime representativeTime(AuctionDTO auction) {
         if (auction.getPaidAt() != null) {
             return auction.getPaidAt();

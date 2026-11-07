@@ -19,6 +19,10 @@ import javafx.scene.control.TextField;
 
 import java.util.List;
 
+/**
+ * Danh sách tài khoản cho admin: tìm theo tên, lọc vai trò và trạng thái.
+ * Nút trên mỗi dòng khóa hoặc mở khóa. Tài khoản ADMIN không bị khóa từ đây.
+ */
 public class AdminUsersController {
     @FXML private TextField searchField;
     @FXML private ComboBox<String> roleFilter;
@@ -42,6 +46,7 @@ public class AdminUsersController {
         usernameColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getUsername()));
         roleColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getRole().name()));
         statusColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getStatus().name()));
+        // Mỗi dòng bảng tự tạo nút Khóa/Mở khóa theo trạng thái hiện tại.
         actionColumn.setCellFactory(column -> new TableCell<>() {
             private final Button actionButton = new Button();
 
@@ -123,6 +128,7 @@ public class AdminUsersController {
         }, "admin-user-status").start();
     }
 
+    /** "Tất cả" nghĩa là không gửi bộ lọc lên server. */
     private UserRole parseRole(String value) {
         return value == null || "Tất cả".equals(value) ? null : UserRole.valueOf(value);
     }

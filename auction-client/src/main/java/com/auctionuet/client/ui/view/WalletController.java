@@ -28,6 +28,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Ví của người dùng: số dư khả dụng, số đang bị đóng băng (cọc), tổng,
+ * nạp tiền qua popup QR và rút tiền trực tiếp.
+ */
 public class WalletController {
     private static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
@@ -106,6 +110,7 @@ public class WalletController {
         }
     }
 
+    /** Popup chặn tương tác với cửa sổ cha cho đến khi đóng. */
     private void openDepositPopup(double amount) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/PaymentCheckoutView.fxml"));
@@ -190,6 +195,7 @@ public class WalletController {
         CurrencyFormatter.setMoneyText(totalLabel, total);
     }
 
+    /** Giao dịch chỉ lưu auctionId; tra thêm tiêu đề phiên để lịch sử dễ đọc. */
     private Map<String, String> loadAuctionTitles(String token, List<TransactionDTO> transactions) {
         if (transactions == null || transactions.isEmpty()) {
             return Map.of();
@@ -251,6 +257,7 @@ public class WalletController {
         return valueOrUnknown(title);
     }
 
+    /** Thay mã phiên trong mô tả server bằng tên phiên nếu đã tra được. */
     private String readableDescription(TransactionDTO transaction, String auctionTitle) {
         if (transaction == null || transaction.getDescription() == null || transaction.getDescription().isBlank()) {
             return "";

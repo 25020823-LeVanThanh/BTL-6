@@ -24,6 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Lưới thẻ phiên đấu giá công khai.
+ * Tìm theo tiêu đề, tên vật phẩm hoặc seller. Seller có thêm bộ lọc "phiên của tôi".
+ * Số cột thẻ tự co theo chiều rộng vùng cuộn, tối đa 4 cột.
+ */
 public class AuctionListController {
     private static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final double CARD_GAP = 20.0;
@@ -55,6 +60,7 @@ public class AuctionListController {
         loadAuctionsFromServer();
     }
 
+    /** Nghe kích thước viewport vì FlowPane không tự chia đều thẻ khi cửa sổ đổi rộng. */
     private void setupStableGridWidth() {
         auctionScrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) ->
                 syncGridWidth(newBounds));
@@ -79,6 +85,7 @@ public class AuctionListController {
         });
     }
 
+    /** Chọn số cột sao cho mỗi thẻ vẫn rộng hơn MIN_CARD_WIDTH. */
     private double calculateCardWidth(double availableWidth) {
         int columns = (int) ((availableWidth + CARD_GAP) / (MIN_CARD_WIDTH + CARD_GAP));
         columns = Math.max(1, Math.min(MAX_CARD_COLUMNS, columns));
@@ -100,6 +107,7 @@ public class AuctionListController {
                 AuctionClient client = new AuctionClient();
                 List<AuctionDTO> list = client.getAuctions(currentToken);
                 Platform.runLater(() -> {
+                    // Một vật phẩm có thể có nhiều phiên cũ; lưới chỉ hiện phiên đại diện.
                     allAuctions = AuctionViewFilter.representativeAuctions(list);
                     applyFilters();
                 });
@@ -259,6 +267,7 @@ public class AuctionListController {
         Button registerButton = new Button("Đăng ký đấu giá");
         registerButton.getStyleClass().add("button");
         registerButton.setMaxWidth(Double.MAX_VALUE);
+        // Chỉ phiên đang chạy mới cho vào màn đặt giá.
         registerButton.setDisable(status != AuctionStatus.RUNNING);
         registerButton.setOnAction(e -> openBiddingView(registerButton, item));
 

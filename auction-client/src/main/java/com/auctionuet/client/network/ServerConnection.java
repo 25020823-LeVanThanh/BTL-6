@@ -1,7 +1,7 @@
 package com.auctionuet.client.network;
 
 import com.auctionuet.client.model.ClientSession;
-import com.auctionuet.client.view.SceneManager;
+import com.auctionuet.client.ui.view.SceneManager;
 import com.auctionuet.protocol.ActionType;
 import com.auctionuet.protocol.PushMessage;
 import com.auctionuet.protocol.Request;
@@ -21,6 +21,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public class ServerConnection {
+    public static final String DEFAULT_HOST = "localhost";
+    public static final int DEFAULT_PORT = 3307;
+
     private static final int RESPONSE_TIMEOUT_SECONDS = 10;
     private static final int HEARTBEAT_INTERVAL_SECONDS = 30;
 

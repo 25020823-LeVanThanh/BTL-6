@@ -6,6 +6,11 @@ import java.util.Locale;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 
+/**
+ * Định dạng số tiền VND trên nhãn.
+ * Số dưới 100 tỷ hiện đầy đủ. Số lớn hơn rút gọn thành tỷ / nghìn tỷ / triệu tỷ,
+ * còn số chính xác nằm trong tooltip khi rê chuột.
+ */
 final class CurrencyFormatter {
     private static final double COMPACT_THRESHOLD = 100_000_000_000.0;
     private static final DecimalFormat COMPACT_FORMAT =
@@ -15,6 +20,7 @@ final class CurrencyFormatter {
 
     private CurrencyFormatter() {}
 
+    /** Chuỗi hiển thị ngắn, dùng trên thẻ và nhãn. */
     static String format(double amount) {
         if (!Double.isFinite(amount)) {
             return "-- VND";
@@ -28,6 +34,7 @@ final class CurrencyFormatter {
         return COMPACT_FORMAT.format(amount / unit.divisor) + " " + unit.suffix + " VND";
     }
 
+    /** Chuỗi đầy đủ, không rút gọn, dùng cho tooltip và xác nhận thanh toán. */
     static String formatFull(double amount) {
         if (!Double.isFinite(amount)) {
             return "-- VND";
@@ -35,6 +42,7 @@ final class CurrencyFormatter {
         return FULL_FORMAT.format(amount) + " VND";
     }
 
+    /** Gán chữ rút gọn lên Label và gắn tooltip số đầy đủ. */
     static void setMoneyText(Label label, double amount) {
         if (label == null) {
             return;
