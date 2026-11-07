@@ -26,6 +26,11 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Form seller tạo vật phẩm.
+ * Loại ELECTRONICS / ART / VEHICLE hiện thêm ô thông số riêng.
+ * Ảnh có thể dán URL hoặc tải file lên; preview cập nhật theo ô link.
+ */
 public class CreateItemController {
 
     @FXML private ComboBox<String> typeComboBox;
@@ -46,6 +51,7 @@ public class CreateItemController {
 
     private Runnable successCallback;
 
+    /** MyItems gọi callback này để đóng form và tải lại danh sách sau khi tạo xong. */
     public void setSuccessCallback(Runnable successCallback) {
         this.successCallback = successCallback;
     }
@@ -70,6 +76,7 @@ public class CreateItemController {
         CurrencyInputHelper.setupCurrencyInput(priceField);
     }
 
+    /** Chỉ hiện khối thông số đúng loại sản phẩm; ẩn bằng cả visible và managed để không chừa khoảng trống. */
     private void switchDynamicForm(String type) {
         electronicsBox.setVisible(false); electronicsBox.setManaged(false);
         artBox.setVisible(false); artBox.setManaged(false);
@@ -89,6 +96,7 @@ public class CreateItemController {
     public void handleSubmit() {
         String typeValue = typeComboBox.getValue();
         String name = nameField.getText();
+        // Ô tiền đang hiện dấu phẩy ngăn cách hàng nghìn, phải bỏ trước khi parse.
         String priceStr = priceField.getText().replace(",", "").trim();
 
         if (typeValue == null || name.isBlank() || priceStr.isBlank()) {
@@ -157,6 +165,7 @@ public class CreateItemController {
         }).start();
     }
 
+    /** Gom ô phụ theo loại vào map extraFields gửi kèm request. */
     private Map<String, Object> buildExtraFields(ItemType type) {
         Map<String, Object> extraFields = new HashMap<>();
         switch (type) {

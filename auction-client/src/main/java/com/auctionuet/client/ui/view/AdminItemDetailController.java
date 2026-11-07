@@ -19,6 +19,10 @@ import javafx.scene.layout.VBox;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
+/**
+ * Admin xem một sản phẩm chờ duyệt: thông tin, ảnh, thông số và nút Duyệt / Từ chối.
+ * Hai nút chỉ hiện khi sản phẩm còn trạng thái PENDING.
+ */
 public class AdminItemDetailController {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -79,6 +83,7 @@ public class AdminItemDetailController {
         descriptionLabel.setText(valueOrDefault(currentItem.getDescription(), "Không có mô tả."));
         specificationsLabel.setText(formatExtraFields(currentItem.getExtraFields()));
         updateApprovalBadge(currentItem.getApprovalStatus());
+        // Chỉ sản phẩm chờ duyệt mới hiện nút Duyệt / Từ chối.
         boolean pending = currentItem.getApprovalStatus() == ItemApprovalStatus.PENDING;
         actionArea.setVisible(pending);
         actionArea.setManaged(pending);
@@ -157,6 +162,7 @@ public class AdminItemDetailController {
         return values.toString();
     }
 
+    /** Đổi camelCase thành nhãn đọc được, ví dụ warrantyMonths -> Warranty Months. */
     private String formatFieldName(String key) {
         StringBuilder text = new StringBuilder();
         for (int index = 0; index < key.length(); index++) {
@@ -173,6 +179,7 @@ public class AdminItemDetailController {
         return value != null && !value.isBlank() ? value : defaultValue;
     }
 
+    /** Thay vùng giữa Dashboard bằng danh sách kiểm duyệt. */
     private void replaceContent(Parent content) {
         Parent root = nameLabel.getScene().getRoot();
         if (root instanceof HBox dashboard) {

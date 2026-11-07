@@ -44,8 +44,14 @@ import com.auctionuet.client.util.AudioRecorder;
 import com.auctionuet.client.util.CurrencyInputHelper;
 import com.auctionuet.client.network.GeminiVoiceServiceClient;
 
+/**
+ * Phòng đặt giá của bidder: giá hiện tại, đồng hồ, lịch sử, biểu đồ,
+ * đặt giá tay, Auto-Bid và đặt giá bằng giọng nói.
+ * Tin push cập nhật giá, gia hạn anti-sniping, kết thúc và hủy phiên.
+ */
 public class BiddingController {
     private static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    /** Phải dẫn đầu liên tục khoảng 3 giây mới được bật lại Auto-Bid sau khi hết hiệu lực. */
     private static final double AUTO_BID_STABILITY_CHECK_SECONDS = 3.2;
     private static final String AUTO_BID_INEFFECTIVE_NOTICE = "Auto-Bid đã hết hiệu lực vì giá hiện tại vượt trần. Hãy dẫn đầu lại, giữ vị trí 3 giây, rồi bật Auto-Bid mới.";
     private static final String AUTO_BID_REGAIN_LEAD_HINT = "Bạn đang dẫn đầu trở lại. Giữ vị trí đủ 3 giây rồi bật lại Auto-Bid.";
@@ -156,6 +162,7 @@ public class BiddingController {
                     sellerLabel.setText("Seller: " + usernameOf(auction.getSeller()));
                     CurrencyFormatter.setMoneyText(priceLabel, auction.getCurrentPrice());
                     auctionDescription = auction.getDescription();
+                    // Server chưa gửi số cọc thì lấy 10% giá khởi điểm.
                     auctionDepositAmount = auction.getDepositAmount() > 0
                             ? auction.getDepositAmount()
                             : auction.getItem() != null ? auction.getItem().getStartingPrice() * 0.10 : 0;
@@ -242,6 +249,7 @@ public class BiddingController {
                     renderAuctionDeposit();
                     loadWalletInfo();
                 }
+                // Bid của người khác có thể làm Auto-Bid mất hiệu lực; kiểm tra lại sau vài giây.
                 boolean externalBid = !isCurrentUser(bid.getBidder());
                 pendingAutoBidLossNotice = externalBid;
                 checkAutoBidState();
@@ -251,6 +259,7 @@ public class BiddingController {
                 return;
             }
 
+            // Anti-sniping: server đẩy giờ kết thúc mới, đồng hồ đếm lại từ mốc đó.
             if (push.getPushType() == PushActionType.AUCTION_EXTENDED) {
                 PushEvents.AuctionExtendedPush data = push.getDataAs(PushEvents.AuctionExtendedPush.class);
                 if (data == null || !currentAuctionId.equals(data.getAuctionId()))
@@ -329,6 +338,7 @@ public class BiddingController {
         }).start();
     }
 
+    /** Dừng đồng hồ, hủy listener và xóa file ghi âm tạm khi rời phòng. */
     public void cleanup() {
         if (countdownTimeline != null)
             countdownTimeline.stop();
@@ -387,6 +397,7 @@ public class BiddingController {
 
         if (isCurrentUser(leader)) {
             boolean justBecameLeader = previousLeaderId == null || !previousLeaderId.equals(currentLeaderId);
+            // Mỗi lần vừa lên dẫn đầu thì đếm lại 3 giây ổn định.
             if (justBecameLeader || leaderBidChanged) {
                 currentUserLeaderObservedAt = LocalDateTime.now();
                 scheduleDelayedAutoBidCheck(AUTO_BID_STABILITY_CHECK_SECONDS);
@@ -773,12 +784,14 @@ public class BiddingController {
 
     private void renderAutoBidState(AutoBidConfigDTO state) {
         AutoBidStatus status = state.getStatus();
+        // Chỉ báo một lần khi Auto-Bid vừa chuyển sang hết hiệu lực vì bị vượt trần.
         boolean shouldNotifyIneffective = autoBidStateLoaded
                 && status == AutoBidStatus.INEFFECTIVE
                 && lastAutoBidStatus != null
                 && lastAutoBidStatus != AutoBidStatus.INEFFECTIVE
                 && pendingAutoBidLossNotice;
 
+        // PROTECTING: đang dẫn đầu, hệ thống giữ giá tới trần. INEFFECTIVE: giá đã vượt trần.
         if (status == AutoBidStatus.PROTECTING) {
             enableAutoBidBtn.setDisable(true);
             cancelAutoBidBtn.setDisable(false);

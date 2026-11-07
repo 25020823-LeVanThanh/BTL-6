@@ -40,6 +40,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Chi tiết một phiên: thông tin vật phẩm, lịch sử giá, biểu đồ và các hành động theo vai trò.
+ * Seller của phiên OPEN được bắt đầu sớm. Người thắng ở WAITING_PAYMENT được trả tiền.
+ * Admin được hủy khi phiên còn OPEN, RUNNING hoặc WAITING_PAYMENT.
+ * Các trạng thái còn đổi được thì đăng ký push để cập nhật giá và kết thúc ngay trên màn hình.
+ */
 public class AuctionDetailController {
     private static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -67,6 +73,7 @@ public class AuctionDetailController {
     @FXML private Label adminCancelErrorLabel;
 
     private String currentAuctionId;
+    /** Đã gửi subscribe cho phiên này, tránh đăng ký push trùng khi tải lại dữ liệu. */
     private boolean subscribed;
     private final BidClient bidClient = new BidClient();
     private final AuctionClient auctionClient = new AuctionClient();
@@ -83,6 +90,7 @@ public class AuctionDetailController {
         CurrencyInputHelper.setupCurrencyInput(bidAmountField);
     }
 
+    /** Màn danh sách truyền id vào sau khi FXML load xong. */
     public void setAuctionData(String auctionId) {
         this.currentAuctionId = auctionId;
         String token = ClientSession.getInstance().getToken();
@@ -162,6 +170,7 @@ public class AuctionDetailController {
         String currentUserId = currentUser != null ? currentUser.getId() : "";
         boolean isMyItem = dto.getSeller() != null && currentUserId.equals(dto.getSeller().getId());
 
+        // Chỉ chủ vật phẩm, và chỉ khi phiên chưa tới giờ tự mở.
         boolean canStartAuction = isMyItem && status == AuctionStatus.OPEN;
         actionArea.setVisible(canStartAuction);
         actionArea.setManaged(canStartAuction);
@@ -242,6 +251,7 @@ public class AuctionDetailController {
         if (currentAuction == null) return;
 
         double deposit = currentAuction.getDepositAmount();
+        // Cọc đã giữ lúc đặt giá; phần còn lại mới bị trừ khỏi số dư ví.
         double remaining = Math.max(0, currentAuction.getCurrentPrice() - deposit);
 
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -422,6 +432,7 @@ public class AuctionDetailController {
             }
 
             Platform.runLater(() -> {
+                // Bidder đang xem chi tiết thì chuyển thẳng vào phòng đặt giá khi phiên bắt đầu.
                 if (ClientSession.getInstance().isBidder()) {
                     openBiddingView();
                 } else {
@@ -521,6 +532,7 @@ public class AuctionDetailController {
         }
     }
 
+    /** Hủy đăng ký push trước khi rời màn hình, tránh nhận tin của phiên cũ. */
     public void cleanup() {
         if (subscribed && currentAuctionId != null) {
             new Thread(() -> new BidClient().unsubscribe(

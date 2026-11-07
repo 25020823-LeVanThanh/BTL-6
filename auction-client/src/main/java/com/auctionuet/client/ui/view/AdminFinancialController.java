@@ -21,6 +21,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Tổng quan tài chính của admin: số dư khả dụng, số dư đóng băng, doanh thu phạt
+ * và bảng giao dịch toàn hệ thống. Lọc lại chỉ tải bảng, không tải lại tổng quan.
+ */
 public class AdminFinancialController {
     private static final String ALL_TYPES = "Tất cả giao dịch";
     private static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -181,6 +185,7 @@ public class AdminFinancialController {
         return value != null && !value.isBlank() ? value : "-";
     }
 
+    /** Một dòng trong combo người dùng: id gửi lên server, label hiện trên UI. */
     private static final class UserFilterOption {
         private final String id;
         private final String label;

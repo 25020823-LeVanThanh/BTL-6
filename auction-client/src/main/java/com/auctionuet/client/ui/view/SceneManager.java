@@ -6,6 +6,11 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import java.io.IOException;
 
+/**
+ * Quản lý cửa sổ chính: nạp file FXML và thay nội dung Scene.
+ * Dùng singleton vì cả ứng dụng chỉ có một Stage.
+ * Khi đã có Scene, chỉ đổi root để giữ kích thước và trạng thái phóng to.
+ */
 public class SceneManager {
     private static SceneManager instance;
     private Stage primaryStage;

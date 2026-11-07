@@ -21,6 +21,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Chi tiết một vật phẩm và bảng các phiên đấu giá từng gắn với nó.
+ * Dữ liệu phiên được sắp theo thời gian kết thúc, thiếu thì dùng thời điểm bắt đầu.
+ */
 public class ItemHistoryController {
     private static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -36,6 +40,7 @@ public class ItemHistoryController {
     public void initialize() {
         setupAuctionHistoryTable();
     }
+    /** Màn trước truyền vật phẩm vào sau khi FXML đã initialize. */
     public void setItem(ItemDTO item) {
         this.currentItem = item;
         updateItemInfo(item);
@@ -126,6 +131,7 @@ public class ItemHistoryController {
         return builder.toString();
     }
 
+    /** Đổi camelCase (vehicleYear) thành chữ có khoảng trắng để đọc trên UI. */
     private String formatExtraFieldName(String key) {
         if ("brand".equals(key)) {
             return "Brand";

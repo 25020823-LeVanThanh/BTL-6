@@ -15,6 +15,11 @@ import javafx.scene.control.Label;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Màn giám sát hệ thống của admin.
+ * Đăng ký một lần để nhận snapshot, sau đó cập nhật bằng tin push realtime.
+ * Sequence cũ hơn snapshot mới nhất thì bỏ qua, tránh số liệu bị lùi.
+ */
 public class AdminSystemMonitorController implements DashboardContentLifecycle {
     private static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
@@ -25,6 +30,7 @@ public class AdminSystemMonitorController implements DashboardContentLifecycle {
     @FXML private Button retryButton;
 
     private final AdminClient adminClient = new AdminClient();
+    /** false khi đã rời màn hình, luồng nền không được vẽ UI nữa. */
     private volatile boolean active;
     private long latestSequence = -1;
 
@@ -100,6 +106,7 @@ public class AdminSystemMonitorController implements DashboardContentLifecycle {
             int liveAuctionCount,
             long sequence,
             LocalDateTime capturedAt) {
+        // Tin đến muộn có sequence nhỏ hơn: giữ số liệu mới hơn.
         if (sequence < latestSequence) {
             return;
         }
