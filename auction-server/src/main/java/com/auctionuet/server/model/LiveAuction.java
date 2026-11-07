@@ -15,11 +15,15 @@ public class LiveAuction extends Auction {
         this.totalBids = 0;
     }
     public LiveAuction(Auction auction) {// khi phiên chuyển OPEN → RUNNING, bọc Auction thành LiveAuction
-        super((auction.getId(),
+        super(auction.getId(),
                 auction.getProductId(),
                 auction.getSellerId(),
                 auction.getStartingPrice(),
+                auction.getCurrentPrice(),
                 auction.getBidIncrement(),
+                auction.getCurrentLeaderId(),
+                auction.getWinnerId(),
+                auction.getStatus(),
                 auction.getStartTime(),
                 auction.getEndTime());
         this.bidHistory = new ArrayList<>();
@@ -32,8 +36,8 @@ public class LiveAuction extends Auction {
     public void addBid(Bid bid){
         bidHistory.add(bid);
         totalBids++;
-        setCurrentPrice(bid.getAmount())
-        setCurrentLeaderId(bid.setBidderId());
+        setCurrentPrice(bid.getAmount());
+        setCurrentLeaderId(bid.getBidderId());
     }
 
     public List<Bid> getBidHistory() {

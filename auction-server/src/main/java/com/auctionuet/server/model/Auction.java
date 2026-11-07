@@ -17,7 +17,7 @@ public class Auction{
     private LocalDateTime endTime;//đóng
 
     public Auction(){}
-    publc Auction(String id,String productId,String sellerId,double startingPrice,double currentPrice,double bidIncrement
+    public Auction(String id,String productId,String sellerId,double startingPrice,double currentPrice,double bidIncrement
             ,String currentLeaderId,String winnerId,String status,LocalDateTime startTime,LocalDateTime endTime){
         this.id = id;
         this.productId = productId;
