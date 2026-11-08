@@ -1,8 +1,6 @@
-//Báo lỗi khi người dùng cố gắng tương tác với một phiên đấu giá hiện không cho phép đặt giá
-
 package com.auctionuet.server.exception;
 
-public class AuctionClosedException extends Exception {
+public class AuctionClosedException extends RuntimeException {
     public AuctionClosedException(String message) {
         super(message);
     }
