@@ -37,5 +37,10 @@ public abstract class Item {    // Khai báo lớp trừu tượng Item
         }
     }
 
-    public abstract String getItemType();   // Phương thức này được khai báo để mỗi loại món hàng có thể trả về tên loại của mình.
+    /* PHƯƠNG THỨC GETITEMTYPE():
+    - Là phương thức mới được khai báo, chưa được triển khai (do đó không có thân hàm {})
+    - Là phương thức được viết ra như 1 bản thiết kế để lớp con có thể triển khai riêng theo từng lớp.
+    - Lớp con muốn triển khai nên sử dụng @Override để trình biên dịch giúp kiểm tra việc ghi đè phương thức.
+     */
+    public abstract String getItemType();
 }
