@@ -1,6 +1,7 @@
 // thật sự đổi số dư; khóa theo user để tránh 2 bid cùng lúc trừ sai tiền.
 package com.auctionuet.server.service.impl;
 
+import com.auctionuet.server.service.TransactionService;
 import com.auctionuet.server.service.WalletService;
 
 import java.util.Map;
@@ -11,6 +12,11 @@ public class WalletServiceImpl implements WalletService {
     private final Map<String,Double> balances= new ConcurrentHashMap<>();// Map chứa số dư
     private final Map<String,Double> holds= new ConcurrentHashMap<>();// Map chứa số tiền đã cọc vào phiên nào
     private final Object lock = new Object();
+    private final TransactionService transactionService;
+
+    public WalletServiceImpl(TransactionService transactionService) {
+        this.transactionService = transactionService;
+    }
 
     @Override
     public double getBalance(String userId) {
@@ -27,6 +33,7 @@ public class WalletServiceImpl implements WalletService {
         synchronized (lock) {
             addBalance(userId,amount);
         }
+        transactionService.record( null,userId,null,amount,"DEPOSIT");
     }
     @Override
     public void withdraw(String userId, double amount) {
@@ -35,6 +42,7 @@ public class WalletServiceImpl implements WalletService {
         synchronized (lock) {
             subtractBalance(userId, amount);
         }
+        transactionService.record( null,userId,null,amount,"WITHDRAW");
     }
 
     @Override
@@ -50,6 +58,7 @@ public class WalletServiceImpl implements WalletService {
             subtractBalance(userId, amount);
             holds.put(key,amount);
         }
+        transactionService.record( null,userId,auctionId,amount,"HOLD");
     }
 
     @Override
@@ -57,6 +66,7 @@ public class WalletServiceImpl implements WalletService {
         requireUser(userId);
         requireAuction(auctionId);
         String key= holdKey(userId,auctionId);
+        double refunded;
         synchronized (lock){
             Double held=holds.get(key);
             if(held==null){
@@ -64,7 +74,9 @@ public class WalletServiceImpl implements WalletService {
             }
             holds.remove(key);
             addBalance(userId,held);
+            refunded=held;
         }
+        transactionService.record( null,userId,auctionId,refunded,"REFUND");
     }
 
     @Override
@@ -77,16 +89,28 @@ public class WalletServiceImpl implements WalletService {
             throw new IllegalArgumentException("depositHeld không hợp lệ");
         }
         String key= holdKey(winnerId,auctionId);
+        double held;
+        double refundExtra=0;
+        double remainPay=0;
         synchronized (lock){
-            Double held=holds.getOrDefault(key,depositHeld);
+            held=holds.getOrDefault(key,depositHeld);
             holds.remove(key);
             if(held>finalPrice){
-                addBalance(winnerId,held-finalPrice);//hoàn dư cọc
+                refundExtra=held-finalPrice;
+                addBalance(winnerId,refundExtra);//hoàn dư cọc
             }else if(held<finalPrice){
-                subtractBalance(winnerId,finalPrice-held);// trừ phần còn lại
+                remainPay=finalPrice-held;
+                subtractBalance(winnerId,remainPay);// trừ phần còn lại
             }
             addBalance(sellerId,finalPrice);
         }
+        if(refundExtra>0){
+            transactionService.record( null,winnerId,auctionId,refundExtra,"REFUND");
+        }
+        if(remainPay>0){
+            transactionService.record( null,winnerId,auctionId,remainPay,"PAYMENT");
+        }
+        transactionService.record( null,sellerId,auctionId,finalPrice,"PAYMENT");
     }
     private void addBalance(String userId,double amount){
         balances.put(userId,balances.getOrDefault(userId,0.0)+amount);
