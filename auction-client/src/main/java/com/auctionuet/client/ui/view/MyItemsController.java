@@ -22,7 +22,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Vật phẩm của người đang đăng nhập.
+ * Seller tạo mới, gỡ, hoặc mở form tạo phiên khi sản phẩm đã duyệt và chưa có phiên đang chiếm.
+ * Mỗi thẻ hiện trạng thái duyệt và trạng thái phiên mới nhất của vật phẩm.
+ */
 public class MyItemsController {
+    /** Vật phẩm chưa từng gắn phiên nào. */
     private static final String NO_AUCTION_STATUS = "NOT_AUCTIONS";
 
     @FXML private FlowPane itemGrid;
@@ -51,6 +57,7 @@ public class MyItemsController {
         searchField.setOnAction(e -> applyFilters());
     }
 
+    /** Lần đầu bấm thì nạp form tạo vật phẩm; các lần sau chỉ hiện hoặc ẩn. */
     private void toggleCreateItemForm() {
         if (createItemHost.getChildren().isEmpty()) {
             try {
@@ -225,6 +232,7 @@ public class MyItemsController {
             createAuctionButton.getStyleClass().add("button");
             createAuctionButton.setMaxWidth(Double.MAX_VALUE);
             createAuctionButton.setStyle("-fx-font-size: 13px;");
+            // Chưa duyệt thì không tạo phiên. Đã duyệt nhưng phiên còn mở/đang chạy/chờ trả cũng khóa nút.
             if (item.getApprovalStatus() != ItemApprovalStatus.APPROVED) {
                 createAuctionButton.setText(item.getApprovalStatus() == ItemApprovalStatus.PENDING
                         ? "Chờ duyệt"

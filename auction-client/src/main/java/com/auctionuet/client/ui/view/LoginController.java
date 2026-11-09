@@ -9,20 +9,26 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
+/**
+ * Màn hình đăng nhập.
+ * Kiểm tra form trên luồng giao diện, rồi kết nối server và gọi API trên luồng nền
+ * để cửa sổ không bị đơ. Kết quả được đưa về luồng JavaFX bằng Platform.runLater.
+ */
 public class LoginController {
+    /** Ô nhập tên đăng nhập, mật khẩu và nhãn báo lỗi gắn từ FXML. */
     @FXML private TextField usernameField;
     @FXML private PasswordField passwordField;
-    @FXML private TextField serverHostField;
-    @FXML private TextField serverPortField;
     @FXML private Label errorLabel;
     @FXML private javafx.scene.control.Button loginButton;
 
     private MainController mainController;
 
+    /** MainController giữ panel bên phải, dùng khi chuyển sang màn đăng ký. */
     public void setMainController(MainController mainController) {
         this.mainController = mainController;
     }
 
+    /** Đăng nhập: kiểm tra form, mở socket, nhận token rồi vào Dashboard. */
     @FXML
     public void handleLogin() {
         String username = usernameField.getText();
@@ -34,25 +40,15 @@ public class LoginController {
             return;
         }
 
-        String host = serverHostField.getText().isBlank() ? "localhost" : serverHostField.getText().trim();
-        int port;
-        try {
-            port = Integer.parseInt(serverPortField.getText().trim());
-        } catch (NumberFormatException e) {
-            errorLabel.setText("Lỗi: Port phải là số!");
-            errorLabel.setVisible(true);
-            return;
-        }
-
         errorLabel.setText("Đang kết nối Server...");
         errorLabel.setStyle("-fx-text-fill: blue;");
         errorLabel.setVisible(true);
         loginButton.setDisable(true);
 
-        int finalPort = port;
         new Thread(() -> {
             try {
-                ServerConnection.getInstance().connect(host, finalPort);
+                ServerConnection.getInstance().connect(
+                        ServerConnection.DEFAULT_HOST, ServerConnection.DEFAULT_PORT);
                 AuthClient client = new AuthClient();
                 LoginResponseDTO loginResponse = client.login(username, password);
 
@@ -75,6 +71,7 @@ public class LoginController {
         }).start();
     }
 
+    /** Đổi panel phải sang form đăng ký, vẫn giữ banner bên trái. */
     @FXML
     public void handleSwitchToRegister() {
         if (mainController != null) {
@@ -82,6 +79,7 @@ public class LoginController {
         }
     }
 
+    /** Quay về màn chọn vai trò / màn chính. */
     @FXML
     public void handleBack() {
         SceneManager.getInstance().switchScene("/fxml/MainView.fxml");

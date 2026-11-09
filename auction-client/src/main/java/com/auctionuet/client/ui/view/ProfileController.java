@@ -28,6 +28,11 @@ import javafx.scene.shape.Circle;
 
 import java.util.List;
 
+/**
+ * Hồ sơ người dùng: avatar, số dư, thống kê và form đổi tên hoặc mật khẩu.
+ * Tài khoản mật khẩu mặc định bị khóa ở form đổi mật khẩu cho đến khi đổi xong.
+ * Admin không hiện ví. Ô thống kê thứ hai đổi nghĩa theo vai trò: seller là đã bán, bidder là đã tham gia.
+ */
 public class ProfileController {
 
     @FXML private Circle avatarCircle;
@@ -105,6 +110,7 @@ public class ProfileController {
         btnTopUp.setManaged(false);
     }
 
+    /** Bắt buộc đổi mật khẩu: ẩn thống kê, ví và nút đổi tên. */
     private void configureRequiredPasswordChange() {
         editProfileBox.setVisible(true);
         editProfileBox.setManaged(true);
@@ -229,6 +235,7 @@ public class ProfileController {
                     }
                     if (requestedNewPassword != null) {
                         showPasswordEdit(false);
+                        // Đổi mật khẩu bắt buộc xong thì tải lại Dashboard để mở các menu.
                         if (ClientSession.getInstance().isMustChangePassword()) {
                             ClientSession.getInstance().completeRequiredPasswordChange();
                             SceneManager.getInstance().switchScene("/fxml/DashboardView.fxml");
@@ -262,6 +269,11 @@ public class ProfileController {
         }
     }
 
+    /**
+     * Đếm thắng, bán/tham gia và phiên đang gắn với user.
+     * Seller: ô thứ hai là số phiên đã thanh toán của mình.
+     * Bidder: ô thứ hai là số phiên đã đặt giá, đã cọc, đang dẫn hoặc đã thắng.
+     */
     private void loadProfileStats() {
         String token = ClientSession.getInstance().getToken();
         UserDTO currentUser = ClientSession.getInstance().getCurrentUser();
@@ -441,6 +453,7 @@ public class ProfileController {
     }
 
     private String calculateReputation(int totalTransactions) {
+        // 0–1 giao dịch: 1 sao, cứ thêm 2 giao dịch thì thêm 1 sao, tối đa 5.
         int stars = Math.min(5, Math.max(1, (totalTransactions / 2) + 1));
         return "★".repeat(stars) + "☆".repeat(5 - stars);
     }

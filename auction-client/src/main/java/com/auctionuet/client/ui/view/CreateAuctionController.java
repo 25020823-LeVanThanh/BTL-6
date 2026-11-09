@@ -29,6 +29,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Seller tạo phiên đấu giá cho một vật phẩm đã duyệt.
+ * Thời gian bắt đầu/kết thúc có mốc nhanh hoặc chọn ngày giờ tùy ý.
+ * Anti-sniping: nếu có bid trong cửa sổ cuối phiên thì kéo dài thêm số giây gia hạn.
+ */
 public class CreateAuctionController {
 
     @FXML private ComboBox<ItemDTO> itemComboBox;
@@ -45,6 +50,7 @@ public class CreateAuctionController {
     private final ItemClient itemClient = new ItemClient();
     private final AuctionClient auctionClient = new AuctionClient();
     private String initialItemId;
+    /** Tiêu đề tự điền lần trước, để không ghi đè tiêu đề người dùng đã sửa tay. */
     private String lastAutoTitle;
     private final ToggleGroup startModeGroup = new ToggleGroup();
     private final ToggleGroup endModeGroup = new ToggleGroup();
@@ -168,6 +174,7 @@ public class CreateAuctionController {
         return LocalDateTime.of(date.getValue(), LocalTime.of(hourSpinner.getValue(), minuteSpinner.getValue()));
     }
 
+    /** Spinner cho phép gõ tay; commit giá trị editor trước khi tính giờ. */
     private void commitSpinnerValue(Spinner<Integer> spinner) {
         if (spinner.getValueFactory() == null) {
             return;
@@ -209,6 +216,7 @@ public class CreateAuctionController {
             return;
         }
 
+        // Mặc định: bid trong 60 giây cuối thì gia hạn thêm 120 giây. Ô trống giữ mặc định.
         int windowSec = 60;
         int extensionSec = 120;
         try {
@@ -380,6 +388,7 @@ public class CreateAuctionController {
     private void syncTitleWithSelectedItem(ItemDTO item) {
         String currentTitle = titleField.getText() != null ? titleField.getText().trim() : "";
         String nextAutoTitle = "Đấu giá: " + item.getName();
+        // Chỉ tự điền khi ô trống hoặc vẫn là tiêu đề tự sinh của vật phẩm trước.
         if (currentTitle.isEmpty() || currentTitle.equals(lastAutoTitle)) {
             titleField.setText(nextAutoTitle);
             lastAutoTitle = nextAutoTitle;
@@ -423,6 +432,7 @@ public class CreateAuctionController {
         }).start();
     }
 
+    /** Chỉ vật phẩm đã duyệt và không còn phiên OPEN/RUNNING/WAITING_PAYMENT. */
     private List<ItemDTO> filterAuctionableItems(String token, List<ItemDTO> items) {
         List<ItemDTO> result = new ArrayList<>();
         if (items == null) {

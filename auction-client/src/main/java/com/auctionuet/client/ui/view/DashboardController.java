@@ -12,8 +12,12 @@ import com.auctionuet.protocol.dto.response.user.UserDTO;
 
 import java.util.function.Consumer;
 
+/**
+ * Khung sau khi đăng nhập: sidebar bên trái và vùng nội dung bên phải.
+ * Nút menu được ẩn theo vai trò. Mỗi lần đổi trang, màn hình cũ được cleanup
+ * nếu controller đó đăng ký push hoặc timer.
+ */
 public class DashboardController {
-
     @FXML private Label userNameLabel;
     @FXML private StackPane contentArea;
 
@@ -21,6 +25,7 @@ public class DashboardController {
     @FXML private Button btnHome, btnMyItems, btnCreateAuction, btnAuctionList, btnPayments, btnProfile, btnLogout, btnWallet;
     @FXML private Button btnAdminUsers, btnAdminItems, btnAdminFinancial, btnAdminSystemMonitor;
     @FXML private Button btnToggleTheme;
+    /** Controller đang hiện ở giữa, để gọi cleanup khi rời trang. */
     private DashboardContentLifecycle activeContentLifecycle;
     private final Consumer<UserDTO> userChangeListener = user ->
             Platform.runLater(() -> renderUserHeader(user));
@@ -129,6 +134,7 @@ public class DashboardController {
         boolean isBidder = ClientSession.getInstance().isBidder();
         boolean isAdmin = ClientSession.getInstance().isAdmin();
 
+        // Mật khẩu mặc định: chỉ cho vào trang hồ sơ cho đến khi đổi xong.
         if (ClientSession.getInstance().isMustChangePassword()) {
             hideButton(btnHome);
             hideButton(btnMyItems);
@@ -162,7 +168,7 @@ public class DashboardController {
         // Nếu là Seller -> Các nút vẫn hiển thị bình thường (do FXML mặc định là visible)
     }
 
-    // Tuyệt chiêu ẩn nút mà không để lại khoảng trống
+    /** Ẩn nút khỏi sidebar và bỏ luôn chỗ trống của nó. */
     private void hideButton(Button btn) {
         if (btn != null) {
             btn.setVisible(false);
@@ -170,7 +176,7 @@ public class DashboardController {
         }
     }
 
-    // Hàm "thần thánh" để đổi ruột màn hình
+    /** Nạp FXML vào vùng giữa. Controller có cleanup thì giữ lại để gọi khi đổi trang. */
     private void loadView(String fxmlPath) {
         cleanupActiveContent();
         try {
@@ -191,7 +197,7 @@ public class DashboardController {
         }
     }
 
-    // Tuyệt chiêu đổi màu nút Sidebar
+    /** Bỏ class CSS "active" của mọi nút, rồi gắn cho nút vừa chọn. */
     private void setActiveButton(Button clickedButton) {
         // Lột sạch áo "active" của tất cả các nút
         if (btnHome != null) btnHome.getStyleClass().remove("active");

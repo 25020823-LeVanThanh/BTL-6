@@ -21,6 +21,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Trang chủ trong Dashboard: thống kê số phiên và 3 phiên sắp kết thúc.
+ * Bidder thấy nút đăng ký đấu giá; vai trò khác chỉ xem chi tiết.
+ */
 public class HomeController {
     private static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -38,6 +42,7 @@ public class HomeController {
         loadHomeData();
     }
 
+    /** Tải danh sách phiên trên luồng nền, rồi vẽ số liệu lên UI. */
     private void loadHomeData() {
         String token = ClientSession.getInstance().getToken();
         if (token == null) {
@@ -52,6 +57,7 @@ public class HomeController {
             try {
                 AuctionClient client = new AuctionClient();
                 List<AuctionDTO> allAuctions = client.getAuctions(token);
+                // Mỗi vật phẩm chỉ đếm một phiên đại diện, tránh đếm trùng lịch sử.
                 List<AuctionDTO> publicAuctions = AuctionViewFilter.representativeAuctions(allAuctions);
 
                 int total = publicAuctions.size();
@@ -210,6 +216,10 @@ public class HomeController {
         }
     }
 
+    /**
+     * Đổi phần nội dung giữa Dashboard, giữ sidebar.
+     * Layout mới là HBox (sidebar + thẻ chính); layout cũ là BorderPane.
+     */
     private void replaceContent(Node source, Parent root) {
         Parent currentRoot = source.getScene().getRoot();
         if (currentRoot instanceof HBox) {
