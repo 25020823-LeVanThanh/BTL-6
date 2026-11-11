@@ -15,7 +15,7 @@ public class Electronics extends Product {
         this.brand = brand;
     }
     public int getWarrantyMonths() {
-        return warrantyMonths;
+        return warrantyMonths;//thời gian bảo hành
     }
     public void setWarrantyMonths(int warrantyMonths) {
         this.warrantyMonths = warrantyMonths;
