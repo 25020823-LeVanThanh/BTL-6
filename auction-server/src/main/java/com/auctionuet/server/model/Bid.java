@@ -1,4 +1,4 @@
-// tác dụng, quán lý từng lượt đấu giá
+//đại diện cho lượt trả giá
 
 package com.auctionuet.server.model;
 import java.time.LocalDateTime;

@@ -1,4 +1,8 @@
 package com.auctionuet.server.model;
 
-public class Category {
+public enum Category {
+    ELECTRONICS,
+    ART,
+    VEHICLE,
+    OTHER
 }
