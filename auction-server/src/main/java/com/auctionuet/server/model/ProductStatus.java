@@ -9,7 +9,7 @@
 - LƯU Ý: Không phải sản phẩm nào cũng trải qua tất cả các trạng thái.
  */
 
-package com.auctionet.server.model;
+package com.auctionuet.server.model;
 
 public enum ProductStatus {
     PENDING,

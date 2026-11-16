@@ -4,7 +4,7 @@
 - LƯU Ý: File chỉ mô tả và lưu thông tin danh mục trong Java. File chưa tạo bảng MySQL, lưu dữ liệu vào database hay tìm kiếm sản phẩm
  */
 
-package com.auctionnet.server.model;    // Package xác định lớp thuộc gói com.auctionnet.server.model
+package com.auctionuet.server.model;    // Package xác định lớp thuộc gói com.auctionnet.server.model
 
 public class Category {
     // KHỞI TẠO THUỘC TÍNH
