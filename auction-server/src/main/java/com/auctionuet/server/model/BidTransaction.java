@@ -1,10 +1,10 @@
-// quán lý dòng tiền đi đâu, vì lý do gì
+//đại diện cho bản ghi giao dịch tài chính/nhật ký dòng tiền phát sinh từ lượt trả giá Bid
 
 package com.auctionuet.server.model;
 import java.time.LocalDateTime;
 
 public class BidTransaction{
-    private String id;//Mã giao dịc
+    private String id;//Mã giao dịch
     private String bidId;//Liên kết tới Bid.id (giao dịch phát sinh từ bid nào; có thể null nếu chỉ nạp/hoàn)
     private String userId;//Ví của ai bị cộng/trừ
     private String auctionId;//Liên quan phiên nào
