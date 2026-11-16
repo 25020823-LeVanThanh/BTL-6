@@ -1,3 +1,8 @@
+/*  VAI TRÒ FILE:
+- Định nghĩa các chức năng quản lý sản phẩm
+- Các chức năng bao gồm thêm, bớt, xóa, cập nhật sản phẩm
+ */
+
 package com.auctionuet.server.service;          // Khai báo file ProductService.java thuộc package com.auctionuet.server.service
 import com.auctionuet.server.model.Product;     // Import Product để Java biết đang sử dụng Product.java thuộc package com.auctionuet.server.model
 import java.util.List;                          // Thư viện về List
