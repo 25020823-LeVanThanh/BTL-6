@@ -1,4 +1,4 @@
 package com.auctionuet.server.model;
 
-public class Product  {
+public class Product {
 }
