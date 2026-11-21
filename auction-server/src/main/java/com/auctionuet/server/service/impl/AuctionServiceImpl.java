@@ -2,24 +2,33 @@
 package com.auctionuet.server.service.impl;
 
 import com.auctionuet.server.model.Auction;
+import com.auctionuet.server.model.Bid;
 import com.auctionuet.server.model.LiveAuction;
 import com.auctionuet.server.service.AuctionService;
 import com.auctionuet.server.service.BidService;
+import com.auctionuet.server.service.WalletService;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
+@Service //thêm annotation @Service lên các class *Impl đã có, để Spring tạo bean và Timer chạy được.
 
 public class AuctionServiceImpl implements AuctionService {
     private final Map<String, Auction> store=new ConcurrentHashMap<>();
     private final Map<String, LiveAuction> liveMap=new ConcurrentHashMap<>();
     private final BidService  bidService;
+    private final WalletService walletService;
     private final Object lock=new Object();
-    public  AuctionServiceImpl(BidService bidService){
+    public  AuctionServiceImpl(BidService bidService,WalletService walletService){
         this.bidService=bidService;
+        this.walletService= walletService;
     }
 
     @Override
@@ -73,11 +82,16 @@ public class AuctionServiceImpl implements AuctionService {
             LiveAuction live= liveMap.get(stored.getId());
             String winner= (live!=null)? live.getCurrentLeaderId() : null;
             double finalPrice=(live!=null)? live.getCurrentPrice(): stored.getCurrentPrice();
+            List<Bid> bids= bidService.getBidHistory(stored.getId());
 
             stored.setWinnerId(winner);
             stored.setCurrentLeaderId(winner);
             stored.setCurrentPrice(finalPrice);
             stored.setStatus("FINISHED");
+            refundAll(stored.getId(),bids,winner);
+            if(winner!=null){
+                settleWinner(stored,winner,finalPrice);
+            }
 
             bidService.unregisterLive(stored.getId());
             liveMap.remove(stored.getId());
@@ -91,11 +105,39 @@ public class AuctionServiceImpl implements AuctionService {
             if("FINISHED".equals(stored.getStatus())||"PAID".equals(stored.getStatus())){
                 throw new IllegalStateException("không cancel được phiên đã kết thúc");
             }
+            List<Bid> bids=bidService.getBidHistory(stored.getId());
             stored.setStatus("CANCELED");
+            refundAll(stored.getId(),bids,null);
             if(liveMap.containsKey(stored.getId())){
                 bidService.unregisterLive(stored.getId());
                 liveMap.remove(stored.getId());
             }
+        }
+    }
+    //ai đã bid thì chắc chắn đã bị giữ cọc
+    private Set<String> bidderIds(List<Bid> bids) {
+        Set<String> ids= new HashSet<>();
+        for(Bid b:bids) ids.add(b.getBidderId());
+        return ids;
+    }
+    //hoàn cọc cho mọi bidder của phiên, trừ exceptUserId(người thắng; null nếu hủy phiên)
+    private void refundAll(String auctionId,List<Bid> bids,String exceptUserId){
+        for(String userId:bidderIds(bids)){
+            if(userId.equals(exceptUserId)) continue;
+            try{
+                walletService.refundDeposit(userId,auctionId,0);
+            } catch (RuntimeException e) {
+                System.out.println("[Auction] hoàn cọc lỗi " + userId + ": " + e.getMessage());
+            }
+        }
+    }
+    //thanh toán cho người thắng: cọc được tính vào giá, trừ phần thiếu,seller nhận finalprice
+    private void settleWinner(Auction stored, String winner, double finalPrice){
+        try{
+            walletService.settlePayment(winner,stored.getSellerId(),stored.getId(),finalPrice,0);// 0: impl lấy cọc thật trong holds
+            stored.setStatus("PAID");
+        } catch (RuntimeException e) {
+            System.out.println("[Auction] thanh toán lỗi " + stored.getId() + ": " + e.getMessage());
         }
     }
     private void requireAuctionArg(Auction auction){
