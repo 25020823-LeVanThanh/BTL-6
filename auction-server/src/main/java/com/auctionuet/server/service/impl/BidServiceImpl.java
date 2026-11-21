@@ -6,6 +6,8 @@ import com.auctionuet.server.exception.InvalidBidException;
 import com.auctionuet.server.model.Bid;
 import com.auctionuet.server.model.LiveAuction;
 import com.auctionuet.server.service.BidService;
+import com.auctionuet.server.service.WalletService;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,9 +15,14 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Service
 public class BidServiceImpl implements BidService {
     private final Map<String,LiveAuction> live=new ConcurrentHashMap<>();
     private final Object lock=new Object();
+    private final WalletService walletService;
+    public BidServiceImpl(WalletService walletService) {
+        this.walletService = walletService;
+    }
 
     @Override
     public Bid placeBid(String auctionId,String bidderId, double amount) throws AuctionClosedException, InvalidBidException {
@@ -24,10 +31,29 @@ public class BidServiceImpl implements BidService {
         }
     }
     private Bid doPlaceBid(String auctionId, String bidderId, double amount) throws AuctionClosedException, InvalidBidException {
-        LiveAuction auction = requireRunning(auctionId);//kiểm tra phiên mang Id này(auctionUd) có đang chạy không;
-        valitdateBidder(auction,bidderId);//kiểm tra người đặt mang id này(bidderId)
+        LiveAuction auction = requireRunning(auctionId);//kiểm tra phiên mang Id này(auctionId) có đang chạy không;
+        validateBidder(auction,bidderId);//kiểm tra người đặt mang id này(bidderId)
         validateAmount(auction, amount);//kiểm tra số tiền khi đặt vào
+        ensureDeposit(auction,bidderId);//giữ cọc trước khi nhận bid
         return acceptBid(auction,bidderId,amount);
+    }
+    //Thực hiện nghiệp vụ phong tỏa tiền cọc và xử lý các tình huống ngoại lệ từ ví
+    private void ensureDeposit(LiveAuction auction,String bidderId) throws InvalidBidException {
+        double deposit=resolveDeposit(auction);
+        try{
+            walletService.holdDeposit(bidderId,auction.getId(),deposit);
+        }catch (IllegalStateException e){
+            if("Đã giữ cọc cho phiên này".equals(e.getMessage())){
+                return; // đã cọc rồi → OK
+            }
+            throw new InvalidBidException(e.getMessage());// ví dụ: số dư không đủ
+        }
+    }
+
+    //Tạm: 10% startingPrice, tối thiểu 1. Sau thay bằng auction.getDepositAmount()
+    private double resolveDeposit(LiveAuction auction){
+        double deposit=auction.getStartingPrice()*0.1;
+        return deposit<1 ? 1:deposit;
     }
     // kiểm tra phiên
     private LiveAuction requireRunning(String auctionId)throws AuctionClosedException{
@@ -35,10 +61,13 @@ public class BidServiceImpl implements BidService {
         if(auction==null || !"RUNNING".equals(auction.getStatus())){
             throw new AuctionClosedException("Phiên đã đóng hoặc không hợp lệ");
         }
+        if(auction.getEndTime() !=null && !LocalDateTime.now().isBefore(auction.getEndTime())){
+            throw new AuctionClosedException("Phiên đã hết thời gian.");
+        }
         return auction;
     }
     //Kiểm tra tư cách người đặt giá
-    private void valitdateBidder(LiveAuction auction,String bidderId) throws InvalidBidException{
+    private void validateBidder(LiveAuction auction,String bidderId) throws InvalidBidException{
         if(bidderId==null || bidderId.isBlank()){
             throw new InvalidBidException("bidderId không hợp lệ");
         }

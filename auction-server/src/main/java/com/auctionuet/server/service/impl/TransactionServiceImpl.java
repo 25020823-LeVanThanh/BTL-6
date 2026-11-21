@@ -3,6 +3,7 @@ package com.auctionuet.server.service.impl;
 
 import com.auctionuet.server.service.TransactionService;
 import com.auctionuet.server.model.BidTransaction;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.UUID;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@Service
 public class TransactionServiceImpl implements TransactionService {
     // tạm RAM — sau gắn repository Người 1
     private static final Set<String> ALLOWED_TYPES=Set.of("DEPOSIT", "WITHDRAW", "HOLD", "REFUND", "PAYMENT");// chỉ cho phép type thuộc 1 trong các kiểu này

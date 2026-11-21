@@ -1,65 +1,73 @@
+/*  VAI TRÒ CỦA FILE:
+- Dựa trên lớp cha Item, thiết kế lớp con Vehicle
+- Có các đặc điểm riêng của phương tiện giao thông.
+ */
+
 package com.auctionuet.server.model;
+import java.time.Year;                              // Thư viện xác định ngày giờ
 
-public class Vehicle extends Product {
-    private String make;          // Hãng sản xuất (Honda, Toyota, BMW,...)
-    private String model;         // Dòng xe (Audi,Mercedes,...)
-    private Integer modelYear;    // Năm sản xuất (dùng Integer để xử lý số học và null an toàn)
-    private Double mileage;       // Số km / dặm đã chạy
-    private String licensePlate;  // Biển số xe hoặc mã định danh phương tiện
+public class Vehicle extends Item {
 
-    public Vehicle() {
-        super();
-        this.category = Category.VEHICLE;
+    private String brand;                           // Tên hãng xe
+    private int manufactureYear;                    // Năm sản xuất
+    private double odo;                             // Số km đã đi
+
+    // Constructor của lớp Vehicle
+    public Vehicle(String name, String description, String brand, int manufactureYear, double odo) {
+        super(name, description);
+        setBrand(brand);
+        setManufactureYear(manufactureYear);
+        setOdo(odo);
     }
 
-    public Vehicle(String id, String name, String description, double startingPrice,
-                   String sellerId, String make, String model, Integer modelYear,
-                   Double mileage, String licensePlate) {
-        super(id, name, description, startingPrice, Category.VEHICLE, sellerId);
-        this.make = make;
-        this.model = model;
-        this.modelYear = modelYear;
-        this.mileage = mileage;
-        this.licensePlate = licensePlate;
+    // Ghi đè phương thức trừu tượng của lớp cha
+    @Override
+    public String getItemType() {
+        return "Vehicle";
     }
 
-    public String getMake() {
-        return make;
+    // Getter và Setter của brand
+    public String getBrand() {
+        return brand;
     }
 
-    public void setMake(String make) {
-        this.make = make;
+    public void setBrand(String brand) {
+        // Nếu không nhập hãng xe thì dùng tên mặc định
+        if (brand == null || brand.isBlank()) {
+            this.brand = "Unknown brand";
+        } else {
+            this.brand = brand.trim();
+        }
     }
 
-    public String getModel() {
-        return model;
+    // Getter và Setter của manufactureYear
+    public int getManufactureYear() {
+        return manufactureYear;
     }
 
-    public void setModel(String model) {
-        this.model = model;
+    public void setManufactureYear(int manufactureYear) {
+        // Năm sản xuất phải dương và không vượt quá năm hiện tại
+        if (manufactureYear <= 0 ||
+                manufactureYear > Year.now().getValue()) {
+            throw new IllegalArgumentException("Invalid year");
+        }
+        else {
+            this.manufactureYear = manufactureYear;
+        }
     }
 
-    public Integer getModelYear() {
-        return modelYear;
+    // Getter và Setter của odo
+    public double getOdo() {
+        return odo;
     }
 
-    public void setModelYear(Integer modelYear) {
-        this.modelYear = modelYear;
-    }
-
-    public Double getMileage() {
-        return mileage;
-    }
-
-    public void setMileage(Double mileage) {
-        this.mileage = mileage;
-    }
-
-    public String getLicensePlate() {
-        return licensePlate;
-    }
-
-    public void setLicensePlate(String licensePlate) {
-        this.licensePlate = licensePlate;
+    public void setOdo(double odo) {
+        // Số km đã đi không được âm
+        if (odo < 0) {
+            throw new IllegalArgumentException("Invalid odo");
+        }
+        else {
+            this.odo = odo;
+        }
     }
 }

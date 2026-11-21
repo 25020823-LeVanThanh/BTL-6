@@ -3,10 +3,11 @@ package com.auctionuet.server.service.impl;
 
 import com.auctionuet.server.service.TransactionService;
 import com.auctionuet.server.service.WalletService;
+import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
+@Service
 public class WalletServiceImpl implements WalletService {
     //tại Ram-sau đổi sang gọi repository của người 1
     private final Map<String,Double> balances= new ConcurrentHashMap<>();// Map chứa số dư
@@ -94,7 +95,6 @@ public class WalletServiceImpl implements WalletService {
         double remainPay=0;
         synchronized (lock){
             held=holds.getOrDefault(key,depositHeld);
-            holds.remove(key);
             if(held>finalPrice){
                 refundExtra=held-finalPrice;
                 addBalance(winnerId,refundExtra);//hoàn dư cọc
@@ -102,6 +102,7 @@ public class WalletServiceImpl implements WalletService {
                 remainPay=finalPrice-held;
                 subtractBalance(winnerId,remainPay);// trừ phần còn lại
             }
+            holds.remove(key);
             addBalance(sellerId,finalPrice);
         }
         if(refundExtra>0){
