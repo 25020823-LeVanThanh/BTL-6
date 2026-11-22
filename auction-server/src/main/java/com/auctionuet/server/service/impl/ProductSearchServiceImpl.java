@@ -45,6 +45,9 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         List<Product> results = new ArrayList<>();          // Tạo danh sách chứa kết quả có kiểu dữ liệu Product
         for(int i = 0; i < products.size(); i++) {
             Product product = products.get(i);              // Khai báo biến tham chiếu product kiểu Product để tham chiếu đến products[i]
+            if(product == null || product.getItem() == null || product.getItem().getName() == null) {
+                continue;
+            }
             String productName = product.getItem().getName();   // Lấy đối tượng Item của sản phẩm, sau đó lấy tên của Item, lưu vào productName
             // Nếu tên sản phẩm (productName) có chứa từ đang tìm kiếm (keyword), thêm sản phẩm vào danh sách results
             if(productName.toLowerCase().contains(keyword.toLowerCase()) ) {
@@ -63,6 +66,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         List<Product> results = new ArrayList<>();
         for(int i = 0; i < products.size(); i++) {
             Product product = products.get(i);
+            if(product == null) {continue;}
             Category productCategory = product.getCategory();
             if(productCategory != null                                          // Sản phẩm phải có danh mục
                     && productCategory.getId() != null                          // Danh mục sản phẩm phải có ID
@@ -93,22 +97,27 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         if(minPrice.compareTo(maxPrice) > 0) {              // Kiểm tra xem giá min có nhỏ hơn giá max không
             throw new IllegalArgumentException("Min price must not be greater than max price");
         }
+        if(minPrice.compareTo(BigDecimal.ZERO) < 0 || maxPrice.compareTo(BigDecimal.ZERO) < 0){
+            throw new IllegalArgumentException("Price must not be negative");
+        }
         List<Product> results = new ArrayList<>();
 
         for(int i = 0; i < products.size(); i++) {
             Product product = products.get(i);
+            if (product == null) {
+                continue;
+            }
             BigDecimal price = product.getStartingPrice();
-
-            if(price != null                                // Kiểm tra sản phẩm để tránh NullPointerException không
-                && price.compareTo(maxPrice) <= 0           // Tìm các sản phẩm nằm trong khoảng giá
-                && price.compareTo(minPrice) >= 0) {
+            if (price != null                                // Kiểm tra sản phẩm để tránh NullPointerException không
+                    && price.compareTo(maxPrice) <= 0           // Tìm các sản phẩm nằm trong khoảng giá
+                    && price.compareTo(minPrice) >= 0) {
                 results.add(product);                       // Với mỗi lần tìm thấy, thêm sản phẩm vào results
             }
-        }
-        return results;
         /*
         Trong trường hợp không tìm thấy sản phẩm nằm trong tầm giá thì results.size() = 0
         =>  Phương thức trả về danh sách rỗng (không phải trả về null)
         */
+        }
+        return results;
     }
 }
