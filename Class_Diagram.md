@@ -77,7 +77,7 @@ classDiagram
         -double odo
     }
     class Product {
-        -Long id
+        -String id
         -Item item
         -Category category
         -Seller seller
@@ -85,7 +85,7 @@ classDiagram
         -BigDecimal startingPrice
     }
     class Category {
-        -Long id
+        -String id
         -String name
         -String description
     }

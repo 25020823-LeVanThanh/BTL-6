@@ -1,3 +1,4 @@
+
 /*  VAI TRÒ CỦA FILE:
 - Tìm và lọc ra các sản phẩm theo nhu cầu
 - Lọc sản phẩm theo tên, theo danh mục, theo khoảng giá
@@ -60,7 +61,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
     // Tìm kiếm sản phẩm theo danh mục
     @Override
     public List<Product> searchByCategory(Category category) {
-        if(category == null || category.getId() == null) {
+        if(category == null || category.getId() == null || category.getId().isBlank()) {
             throw new IllegalArgumentException("Invalid category");
         }
         List<Product> results = new ArrayList<>();
@@ -68,13 +69,14 @@ public class ProductSearchServiceImpl implements ProductSearchService {
             Product product = products.get(i);
             if(product == null) {continue;}
             Category productCategory = product.getCategory();
-            if(productCategory != null                                          // Sản phẩm phải có danh mục
-                    && productCategory.getId() != null                          // Danh mục sản phẩm phải có ID
-                    && productCategory.getId().equals(category.getId())){       // 2 danh mục phải có cùng ID
+            if(productCategory != null                                         // Sản phẩm phải có danh mục
+                    && productCategory.getId() != null                         // Danh mục sản phẩm phải có ID
+                    && !productCategory.getId().isBlank()                      // ID danh mục không được là chuỗi rỗng
+                    && productCategory.getId().equals(category.getId())){      // 2 danh mục phải có cùng ID
                 results.add(product);                                           // Thêm sản phẩm vào danh sách kết quả
             }
             /* Ở đây ta sử dụng toán tử equals để so sánh ID thay vì == là vì biến id (trong file Category.java)
-            đang khai báo dưới kiểu dữ liệu Long. Toán tử == chỉ kiểm tra xem 2 đối tượng Long có tham chiếu đến cùng 1 đối tượng không.
+            đang khai báo dưới kiểu dữ liệu String. Toán tử == chỉ kiểm tra xem 2 đối tượng String có tham chiếu đến cùng 1 đối tượng không.
              */
         }
         return results;
@@ -108,15 +110,15 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                 continue;
             }
             BigDecimal price = product.getStartingPrice();
-            if (price != null                                // Kiểm tra sản phẩm để tránh NullPointerException không
+            if (price != null                               // Kiểm tra sản phẩm để tránh NullPointerException không
                     && price.compareTo(maxPrice) <= 0           // Tìm các sản phẩm nằm trong khoảng giá
                     && price.compareTo(minPrice) >= 0) {
                 results.add(product);                       // Với mỗi lần tìm thấy, thêm sản phẩm vào results
             }
-        /*
-        Trong trường hợp không tìm thấy sản phẩm nằm trong tầm giá thì results.size() = 0
-        =>  Phương thức trả về danh sách rỗng (không phải trả về null)
-        */
+            /**
+             Trong trường hợp không tìm thấy sản phẩm nằm trong tầm giá thì results.size() = 0
+             =>  Phương thức trả về danh sách rỗng (không phải trả về null)
+             */
         }
         return results;
     }

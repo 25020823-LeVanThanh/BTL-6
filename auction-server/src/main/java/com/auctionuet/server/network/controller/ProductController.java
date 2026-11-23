@@ -1,3 +1,4 @@
+
 /*  VAI TRÒ FILE:
 - Tiếp nhận yêu cầu và chuyển cho service
 - ProductController là nhân viên tiếp nhận đơn hàng, còn ProductService là bộ phận xử lý đơn hàng.
@@ -38,9 +39,9 @@ public class ProductController {
         return productService.getAllProducts();
     }
 
-    // 	Tìm sản phẩm theo ID
+    //  Tìm sản phẩm theo ID
     @GetMapping("/{id}")
-    public Product getProductById(@PathVariable Long id) {
+    public Product getProductById(@PathVariable String id) {
         // Gọi ProductService để tìm sản phẩm theo id
         return productService.getProductById(id);
     }
@@ -52,7 +53,6 @@ public class ProductController {
      */
 
     // @PostMapping là annotation của Spring Boot dùng để đánh dấu phương thức xử lý yêu cầu HTTP POST.
-
     // Tạo sản phẩm mới
     @PostMapping
     public Product createProduct(@RequestBody Product product) {    // @RequestBody: Nhận dữ liệu sản phẩm từ HTTP request
@@ -61,9 +61,7 @@ public class ProductController {
 
     // Cập nhật hoặc thay thế thông tin sản phẩm theo thiết kế API
     @PutMapping("/{id}")
-    public Product updateProduct(@PathVariable Long id, @RequestBody Product product) {
+    public Product updateProduct(@PathVariable String id, @RequestBody Product product) {
         return productService.updateProduct(id, product);
     }
-
-
 }
