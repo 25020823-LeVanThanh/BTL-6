@@ -18,10 +18,9 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 public class ProductServiceImpl implements ProductService {
-
     private final ProductRepository productRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository) {
+    public ProductServiceImpl(ProductRepository productRepository) {      // Constructor
         this.productRepository = productRepository;
     }
 
