@@ -2,7 +2,7 @@ package com.auctionuet.server.model;
 import java.math.BigDecimal;
 
 public class Product {
-    private Long id;
+    private String id;
     private Item item;
     private Category category;
     private Seller seller;
@@ -78,7 +78,7 @@ public class Product {
     public Item getItem() {
         return item;
     }
-    public Long getId() {
+    public String getId() {
         return id;
     }
     public Category getCategory() {

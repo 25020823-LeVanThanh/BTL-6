@@ -9,11 +9,9 @@ package com.auctionuet.server.model;    // Package xác định lớp thuộc g�
 public class Category {
     // KHỞI TẠO THUỘC TÍNH
     // Các thuộc tính khai báo private để đảm bảo tính đóng gói và được truy cập qua getter, setter.
-    private Long id;               // Mã danh mục (VD: 9238741)
-    // LƯU Ý: long: kiểu dữ liệu nguyên thủy (primitive type), không nhận giá trị null
-    //        Long: lớp bao (wrapper class) của long, có thể nhận giá trị null
-    private String name;           // Tên danh mục (VD: "Electronics")
-    private String description;    // Mô tả danh mục (VD: "Các thiết bị điện tử")
+    private String id;               // Mã danh mục (VD: ABC-741)
+    private String name;             // Tên danh mục (VD: "Electronics")
+    private String description;      // Mô tả danh mục (VD: "Các thiết bị điện tử")
 
         /*  CONSTRUCTOR OVERLOADING: NẠP CHỒNG HÀM TẠO
         - Cùng 1 lớp có thể có nhiều constructor khác nhau miễn khác danh sách tham số.
@@ -25,7 +23,7 @@ public class Category {
     public Category() {}
 
     // CONSTRUCTOR 2: 3 tham số - Cho phép tạo một danh mục và cung cấp thông tin ngay lập tức.
-    public Category(Long id, String name, String description) {
+    public Category(String id, String name, String description) {
             /* SỬ DỤNG HÀM SETTER
             - Có thể thay thế bẳng this.id = id; nhưng lúc này constructor sẽ chỉ gán được giá trị, không kiểm tra dữ liệu
             - Ví dụ nếu không sử dụng hàm Setter, khi người dùng nhập:
@@ -45,7 +43,7 @@ public class Category {
         => Gọi category.getId();
          => Đảm bảo tính đóng gói
          */
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
@@ -53,8 +51,8 @@ public class Category {
         - Giúp người dùng nhập vào danh mục
         - Kiểm tra xem danh mục nhập vào có hợp lệ hay không
         */
-    public void setId(Long id) {
-        if(id != null && id <= 0) {     // Kiểm tra ID đã có giá trị nhưng không phải số dương
+    public void setId(String id) {
+        if(id != null) {     // Kiểm tra ID đã có giá trị nhưng không phải số dương
             throw new IllegalArgumentException("Invalid ID");
         }
         // Sau khi qua được kiểm tra ngoại lệ thì lấy giá trị ID được truyền vào và lưu nó vào thuộc tính ID của đối tượng Category hiện tại
