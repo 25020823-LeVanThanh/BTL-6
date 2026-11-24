@@ -1,4 +1,3 @@
-
 /*  VAI TRÒ FILE:
 - Phân biệt các file Category:
     + Category.java: Mô tả thông tin của một danh mục, gồm id, name, description.
