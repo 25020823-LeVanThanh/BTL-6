@@ -9,6 +9,7 @@ import com.auctionuet.server.service.BidService;
 import com.auctionuet.server.service.WalletService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -37,7 +38,7 @@ public class AuctionServiceImpl implements AuctionService {
         if(auction.getId()==null|| auction.getId().isBlank()){
             auction.setId(UUID.randomUUID().toString());
         }
-        auction.setStatus("OPEN");
+        auction.setStatus("PENDING");
         auction.setCurrentPrice(auction.getStartingPrice());
         auction.setCurrentLeaderId(null);
         auction.setWinnerId(null);
@@ -51,18 +52,22 @@ public class AuctionServiceImpl implements AuctionService {
         if(auction==null) throw new IllegalArgumentException("auction không tồn tại");
         if(auction.getStartingPrice()<=0) throw new IllegalArgumentException("giá khởi điểm của phiên(auction) đang nhỏ hơn hoặc bằng 0");
         if(auction.getBidIncrement()<=0) throw new IllegalArgumentException("bước giá đang nhỏ hơn hoặc bằng 0");
+        if(auction.getDepositAmount()<=0) throw new IllegalArgumentException("depositAmount phải lớn hơn 0");
         if(auction.getStartTime()==null|| auction.getEndTime()==null)
             throw new IllegalArgumentException("Start/End time không hợp lệ");
         if(!auction.getStartTime().isBefore(auction.getEndTime()))
             throw new IllegalArgumentException("Start time phải trước End Time");
+        if(auction.getAntiSnipingWindowSeconds()<0 || auction.getAntiSnipingExtensionSeconds()<0){
+            throw new IllegalArgumentException("anti-sniping không được âm");
+        }
     }
     @Override
     public void start(Auction auction){
         requireAuctionArg(auction);
         synchronized (lock) {
             Auction stored= requireStore(auction.getId());
-            if(!"OPEN".equals(stored.getStatus())){
-                throw new IllegalStateException("chỉ Start được phiên đang OPEN");
+            if(!"PENDING".equals(stored.getStatus())){
+                throw new IllegalStateException("chỉ Start được phiên đang PENDING");
             }
             stored.setStatus("RUNNING");
             LiveAuction live=new LiveAuction(stored);
@@ -161,5 +166,20 @@ public class AuctionServiceImpl implements AuctionService {
     @Override
     public Optional<LiveAuction> getLive(String auctionId){
         return Optional.ofNullable(liveMap.get(auctionId));
+    }
+
+    @Override
+    public  void updateEndTime(String auctionId, LocalDateTime newEndTime){
+        if (auctionId == null || newEndTime == null) {
+            throw new IllegalArgumentException("auctionId/endTime không hợp lệ");
+        }
+        synchronized (lock) {
+            Auction stored = requireStore(auctionId);
+            stored.setEndTime(newEndTime);
+            LiveAuction live = liveMap.get(auctionId);
+            if (live != null) {
+                live.setEndTime(newEndTime);
+            }
+        }
     }
 }

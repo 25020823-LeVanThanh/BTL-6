@@ -5,9 +5,11 @@ import com.auctionuet.server.exception.AuctionClosedException;
 import com.auctionuet.server.exception.InvalidBidException;
 import com.auctionuet.server.model.Bid;
 import com.auctionuet.server.model.LiveAuction;
+import com.auctionuet.server.service.AuctionService;
 import com.auctionuet.server.service.BidService;
 import com.auctionuet.server.service.WalletService;
 import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Lazy;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,22 +22,25 @@ public class BidServiceImpl implements BidService {
     private final Map<String,LiveAuction> live=new ConcurrentHashMap<>();
     private final Object lock=new Object();
     private final WalletService walletService;
-    public BidServiceImpl(WalletService walletService) {
+    private final AuctionService auctionService;
+    public BidServiceImpl(WalletService walletService, @Lazy AuctionService auctionService) {
         this.walletService = walletService;
+        this.auctionService = auctionService;
     }
 
     @Override
     public Bid placeBid(String auctionId,String bidderId, double amount) throws AuctionClosedException, InvalidBidException {
+        Bid bid;
+        LiveAuction auction;
         synchronized (lock){
-            return doPlaceBid( auctionId, bidderId, amount);
+            auction=requireRunning(auctionId);
+            validateBidder(auction, bidderId);
+            validateAmount(auction, amount);
+            ensureDeposit(auction, bidderId);
+            bid = acceptBid(auction, bidderId, amount);
         }
-    }
-    private Bid doPlaceBid(String auctionId, String bidderId, double amount) throws AuctionClosedException, InvalidBidException {
-        LiveAuction auction = requireRunning(auctionId);//kiểm tra phiên mang Id này(auctionId) có đang chạy không;
-        validateBidder(auction,bidderId);//kiểm tra người đặt mang id này(bidderId)
-        validateAmount(auction, amount);//kiểm tra số tiền khi đặt vào
-        ensureDeposit(auction,bidderId);//giữ cọc trước khi nhận bid
-        return acceptBid(auction,bidderId,amount);
+        applyAntiSniping(auction);// bỏ ra ngoài tránh tình trạng deadlock
+        return bid;
     }
     //Thực hiện nghiệp vụ phong tỏa tiền cọc và xử lý các tình huống ngoại lệ từ ví
     private void ensureDeposit(LiveAuction auction,String bidderId) throws InvalidBidException {
@@ -49,11 +54,13 @@ public class BidServiceImpl implements BidService {
             throw new InvalidBidException(e.getMessage());// ví dụ: số dư không đủ
         }
     }
-
-    //Tạm: 10% startingPrice, tối thiểu 1. Sau thay bằng auction.getDepositAmount()
-    private double resolveDeposit(LiveAuction auction){
-        double deposit=auction.getStartingPrice()*0.1;
-        return deposit<1 ? 1:deposit;
+    // kiểm tra tiền cọc
+    private double resolveDeposit(LiveAuction auction) {
+        double deposit = auction.getDepositAmount();
+        if (deposit <= 0) {
+            throw new IllegalStateException("Phiên chưa cấu hình tiền cọc");
+        }
+        return deposit;
     }
     // kiểm tra phiên
     private LiveAuction requireRunning(String auctionId)throws AuctionClosedException{
@@ -92,6 +99,24 @@ public class BidServiceImpl implements BidService {
         Bid bid= new Bid(UUID.randomUUID().toString(),auction.getId(),bidderId,amount,LocalDateTime.now());
         auction.addBid(bid);
         return bid;
+    }
+
+    /** Bid trong cửa sổ cuối → cộng extension vào endTime (khớp client 60/120). */
+    private void applyAntiSniping(LiveAuction auction){
+        int window=auction.getAntiSnipingWindowSeconds();
+        int extension=auction.getAntiSnipingExtensionSeconds();
+        if (window <= 0 || extension <= 0 || auction.getEndTime() == null) {
+            return; // tắt anti-sniping
+        }
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime end = auction.getEndTime();
+        // còn lại <= window giây?
+        if(now.isBefore(end.minusSeconds(window))){
+            return; // còn sớm, chưa vào cửa sổ
+        }
+        LocalDateTime newEnd =end.plusSeconds(extension);
+        auction.setEndTime(newEnd);
+        auctionService.updateEndTime(auction.getId(),newEnd);
     }
     @Override
     public List<Bid> getBidHistory(String auctionId){
