@@ -14,7 +14,7 @@ public class LiveAuction extends Auction {
         this.bidHistory = new ArrayList<>();
         this.totalBids = 0;
     }
-    public LiveAuction(Auction auction) {// khi phiên chuyển OPEN → RUNNING, bọc Auction thành LiveAuction
+    public LiveAuction(Auction auction) {// khi phiên chuyển PENDING → RUNNING, bọc Auction thành LiveAuction
         super(auction.getId(),
                 auction.getProductId(),
                 auction.getSellerId(),
@@ -26,6 +26,9 @@ public class LiveAuction extends Auction {
                 auction.getStatus(),
                 auction.getStartTime(),
                 auction.getEndTime());
+        setDepositAmount(auction.getDepositAmount());
+        setAntiSnipingWindowSeconds(auction.getAntiSnipingWindowSeconds());
+        setAntiSnipingExtensionSeconds(auction.getAntiSnipingExtensionSeconds());
         this.bidHistory = new ArrayList<>();
         this.totalBids = 0;
         setCurrentPrice(auction.getCurrentPrice());
