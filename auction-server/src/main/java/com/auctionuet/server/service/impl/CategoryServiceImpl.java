@@ -1,4 +1,3 @@
-
 /*  VAI TRÒ FILE:
 - Phân biệt các file Category:
     + Category.java: Mô tả thông tin của một danh mục, gồm id, name, description.
@@ -11,15 +10,21 @@
 
 package com.auctionuet.server.service.impl;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.auctionuet.server.model.Category;
 import com.auctionuet.server.service.CategoryService;
+import com.auctionuet.server.repository.CategoryRepository;
 
 public class CategoryServiceImpl implements CategoryService {
-    //Tạo một danh sách rỗng để lưu trữ và quản lý các danh mục sản phẩm trong CategoryServiceImpl.java
-    private final List<Category> categories = new ArrayList<>();
+    // Repository phụ trách truy cập và lưu trữ dữ liệu danh mục
+    private final CategoryRepository categoryRepository;
+
+    // Constructor
+    public CategoryServiceImpl(CategoryRepository categoryRepository) {
+        this.categoryRepository = categoryRepository;
+    }
 
     @Override
     public Category createCategory(Category category) {
@@ -32,14 +37,20 @@ public class CategoryServiceImpl implements CategoryService {
         if(category.getId() == null || category.getId().isBlank()) {              // Kiểm tra danh mục có ID hợp lệ hay không
             throw new IllegalArgumentException("Invalid category ID");
         }
-        for(int i = 0; i < categories.size(); i++) {                    // Xét từng phần tử trong categories
-            Category existingCategory = categories.get(i);              // Lấy danh mục ở vị trí i và gán cho existingCategory
-            if(existingCategory.getId().equals(category.getId())) {     // Nếu ID đã tồn tại từ trước, ném ra ngoại lệ
-                throw new IllegalArgumentException("Category ID already existed");
-            }
+
+        Optional<Category> existingCategory = categoryRepository.findById(category.getId());    // Tìm danh mục theo ID trong Respository
+        if(existingCategory.isPresent()) {                                        // Nếu ID đã tồn tại từ trước, ném ra ngoại lệ
+            throw new IllegalArgumentException("Category ID already existed");
         }
-        categories.add(category);       // Thêm đối tượng category vào danh sách lưu trữ.
-        return category;                // Trả về tham chiếu đến đối tượng vừa thêm cho nơi gọi phương thức.
+
+        return categoryRepository.save(category);
+
+        /*  Khi gọi save(category):
+        1. Service gửi danh mục cần lưu cho Repository.
+        2. Repository thực hiện thao tác lưu theo cách được triển khai.
+        3. Repository trả về một đối tượng Category.
+        4. Từ khóa return chuyển đối tượng đó về nơi đã gọi createCategory().
+         */
     }
 
     @Override
@@ -47,11 +58,9 @@ public class CategoryServiceImpl implements CategoryService {
         if(id == null || id.isBlank()) {
             throw new IllegalArgumentException("Invalid ID");
         }
-        for(int i = 0; i < categories.size(); i++) {
-            Category existingCategoryId = categories.get(i);
-            if(existingCategoryId.getId().equals(id)){          // Nếu tìm thấy ID trùng khớp với ID đã có -> Trả về danh mục đó
-                return existingCategoryId;
-            }
+        Optional<Category> existingCategory = categoryRepository.findById(id);
+        if(existingCategory.isPresent()) {                                // Nếu tìm thấy danh mục theo ID thì trả về danh mục đó
+            return existingCategory.get();
         }
         throw new IllegalArgumentException("ID not found");     // Nếu không tìm thấy ID nào trùng thì ném ra ngoại lệ (dùng tạm IllegalArgumentException)
     }
@@ -70,14 +79,8 @@ public class CategoryServiceImpl implements CategoryService {
         if(!id.equals(category.getId())) {
             throw new IllegalArgumentException("Different ID");
         }
-        for(int i = 0; i < categories.size(); i++) {
-            Category existingCategory = categories.get(i);
-            if(existingCategory.getId().equals(id)) {
-                categories.set(i, category);
-                return category;
-            }
-        }
-        throw new IllegalArgumentException("ID not found");     // Nếu không tìm thấy ID nào trùng thì ném ra ngoại lệ (dùng tạm IllegalArgumentException)
+        getCategoryById(id);    // Kiểm tra xem danh mục cần cập nhật có tồn tại không. Nếu không tồn tại, phương thức sẽ ném ngoại lệ và dừng việc cập nhật.
+        return categoryRepository.save(category);   // Yêu cầu Repository lưu danh mục mới và trả kết quả về nơi gọi updateCategory().
     }
 
     @Override
@@ -85,25 +88,21 @@ public class CategoryServiceImpl implements CategoryService {
         if(id == null || id.isBlank()) {
             throw new IllegalArgumentException("Invalid ID");
         }
-        for(int i = 0; i < categories.size(); i++) {
-            Category existingCategory = categories.get(i);
-            if(existingCategory.getId().equals(id)) {
-                categories.remove(i);
-                return;
-            }
-        }
-        throw new IllegalArgumentException("ID not found");
+        getCategoryById(id);
+        categoryRepository.deleteById(id);
     }
 
     @Override
     public List<Category> getAllCategories() {      // Hiển thị toàn bộ category
-        return new ArrayList<>(categories);
+        return categoryRepository.findAll();
     }
 }
 
-/* LƯU Ý MỘT SỐ GIỚI HẠN:
-   - Danh mục chỉ tồn tại trong RAM. Khi tắt server, dữ liệu sẽ mất.
-   - Mỗi đối tượng CategoryServiceImpl mới có một danh sách categories riêng.
-   - ArrayList không tự bảo đảm an toàn khi nhiều luồng cùng sửa dữ liệu.
-   - getAllCategories() tạo bản sao danh sách, nhưng không sao chép sâu từng đối tượng Category.
-*/
+/* LƯU Ý:
+ * - CategoryServiceImpl xử lý nghiệp vụ quản lý danh mục.
+ * - Dữ liệu được truy cập thông qua CategoryRepository.
+ * - Việc lưu trữ bằng RAM, JSON hay Database phụ thuộc
+ *   vào lớp triển khai CategoryRepository.
+ * - Các chức năng lưu trữ thực tế cần được kiểm thử
+ *   sau khi Repository được triển khai.
+ */
