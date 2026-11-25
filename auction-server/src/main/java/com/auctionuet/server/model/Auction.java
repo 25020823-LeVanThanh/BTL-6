@@ -10,12 +10,17 @@ public class Auction{
     private double startingPrice;//Giá khởi điểm
     private double currentPrice;//Giá cao nhất hiện tại
     private double bidIncrement;//Bước giá tối thiểu
+    private double depositAmount;//Tiền cọc bắt buộc khi vào phiên
     private String currentLeaderId;//Ai đang dẫn đầu
     private String winnerId;//Ai thắng khi đóng(đang chạy =null)
-    private String status;//OPEN / RUNNING / FINISHED / PAID / CANCELED
+    private String status;//PENDING / RUNNING / FINISHED / PAID / CANCELED
     private LocalDateTime startTime;// mở
     private LocalDateTime endTime;//đóng
-
+    /*
+    * anti-sniping
+    */
+    private int antiSnipingWindowSeconds;   // còn ≤ N giây cuối thì kích hoạt
+    private int antiSnipingExtensionSeconds; // cộng thêm bao nhiêu giây
     public Auction(){}
     public Auction(String id,String productId,String sellerId,double startingPrice,double currentPrice,double bidIncrement
             ,String currentLeaderId,String winnerId,String status,LocalDateTime startTime,LocalDateTime endTime){
@@ -65,6 +70,8 @@ public class Auction{
     public void setBidIncrement(double bidIncrement) {
         this.bidIncrement = bidIncrement;
     }
+    public double getDepositAmount() { return depositAmount; }
+    public void setDepositAmount(double depositAmount) { this.depositAmount = depositAmount; }
     public String getCurrentLeaderId() {
         return currentLeaderId;
     }
@@ -94,5 +101,17 @@ public class Auction{
     }
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
+    }
+    public int getAntiSnipingWindowSeconds() {
+        return antiSnipingWindowSeconds;
+    }
+    public void setAntiSnipingWindowSeconds(int v) {
+        this.antiSnipingWindowSeconds = v;
+    }
+    public int getAntiSnipingExtensionSeconds() {
+        return antiSnipingExtensionSeconds;
+    }
+    public void setAntiSnipingExtensionSeconds(int v) {
+        this.antiSnipingExtensionSeconds = v;
     }
 }
