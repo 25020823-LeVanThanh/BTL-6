@@ -12,6 +12,7 @@ import com.auctionuet.server.model.Product;
 import com.auctionuet.server.service.ProductService;
 import com.auctionuet.server.repository.ProductRepository;
 import com.auctionuet.server.exception.ProductNotFoundException;
+import com.auctionuet.server.model.ProductStatus;
 
 import java.util.List;
 import java.math.BigDecimal;
@@ -20,7 +21,7 @@ import java.util.Optional;
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository) {      // Constructor
+    public ProductServiceImpl(ProductRepository productRepository) {        // Constructor
         this.productRepository = productRepository;
     }
 
@@ -29,35 +30,28 @@ public class ProductServiceImpl implements ProductService {
         if (product == null) {
             throw new IllegalArgumentException("Invalid product");
         }
-
         if (product.getItem() == null ||
                 product.getItem().getName() == null ||
                 product.getItem().getName().isBlank()) {
             throw new IllegalArgumentException("Invalid item");
         }
-
         if (product.getStartingPrice() == null ||
                 product.getStartingPrice().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Invalid starting price");
         }
-
         if (product.getCategory() == null) {
             throw new IllegalArgumentException("Invalid category");
         }
-
         if (product.getCategory().getId() == null ||
                 product.getCategory().getId().isBlank()) {
             throw new IllegalArgumentException("Invalid ID");
         }
-
         if (product.getSeller() == null) {
             throw new IllegalArgumentException("Invalid seller");
         }
-
         if (product.getStatus() == null) {
             throw new IllegalArgumentException("Invalid status");
         }
-
         return productRepository.save(product);
     }
 
@@ -66,13 +60,10 @@ public class ProductServiceImpl implements ProductService {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("Invalid ID");
         }
-
         Optional<Product> result = productRepository.findById(id);
-
         if (result.isPresent()) {
             return result.get();
         }
-
         throw new ProductNotFoundException("Product not found: " + id);
     }
 
@@ -81,24 +72,19 @@ public class ProductServiceImpl implements ProductService {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("Invalid ID");
         }
-
         if (product == null) {
             throw new IllegalArgumentException("Invalid product");
         }
-
         Product existingProduct = getProductById(id);
-
         if (product.getItem() == null ||
                 product.getItem().getName() == null ||
                 product.getItem().getName().isBlank()) {
             throw new IllegalArgumentException("Invalid product");
         }
-
         if (product.getStartingPrice() == null ||
                 product.getStartingPrice().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Invalid starting price");
         }
-
         if (product.getCategory() == null ||
                 product.getCategory().getId() == null ||
                 product.getCategory().getId().isBlank()) {
@@ -117,7 +103,6 @@ public class ProductServiceImpl implements ProductService {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("Invalid ID");
         }
-
         getProductById(id);
         productRepository.deleteById(id);
     }
@@ -125,5 +110,15 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<Product> getAllProducts() {
         return productRepository.findAll();
+    }
+
+    @Override
+    public Product approveProduct(String id) {
+        Product product = getProductById(id);
+        if(product.getStatus() != ProductStatus.PENDING) {
+            throw new IllegalStateException("Product is not pending");
+        }
+        product.setStatus(ProductStatus.ACTIVE);
+        return productRepository.save(product);
     }
 }
