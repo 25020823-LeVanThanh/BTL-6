@@ -55,6 +55,7 @@ public class CreateAuctionController {
     private final ToggleGroup startModeGroup = new ToggleGroup();
     private final ToggleGroup endModeGroup = new ToggleGroup();
 
+    /** Tải vật phẩm, gắn preview theo lựa chọn và dựng bộ chọn giờ. */
     @FXML
     public void initialize() {
         renderEmptyItemPreview();
@@ -72,6 +73,7 @@ public class CreateAuctionController {
         setupTimeControls();
     }
 
+    /** Spinner giờ/phút, radio mốc nhanh và listener tính lại thời lượng. */
     private void setupTimeControls() {
         setupSpinner(startHourSpinner, 0, 23, LocalDateTime.now().getHour());
         setupSpinner(startMinuteSpinner, 0, 59, LocalDateTime.now().getMinute());
@@ -104,12 +106,14 @@ public class CreateAuctionController {
         calculateDuration();
     }
 
+    /** Spinner số nguyên, cho gõ tay, bước nhảy 1. */
     private void setupSpinner(Spinner<Integer> spinner, int min, int max, int initialValue) {
         spinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(min, max, initialValue, 1));
         spinner.setEditable(true);
         spinner.setPrefWidth(82);
     }
 
+    /** Hiện thời lượng dự kiến hoặc lỗi nếu thiếu giờ / kết thúc không sau bắt đầu. */
     private void calculateDuration() {
         LocalDateTime start = resolveStartTime();
         LocalDateTime end = resolveEndTime(start);
@@ -135,6 +139,7 @@ public class CreateAuctionController {
         durationLabel.setStyle("-fx-text-fill: #2ecc71;");
     }
 
+    /** Bắt đầu ngay, sau 5 phút, hoặc ngày giờ tự chọn. */
     private LocalDateTime resolveStartTime() {
         LocalDateTime now = LocalDateTime.now();
         if (startNowRadio.isSelected()) {
@@ -146,6 +151,7 @@ public class CreateAuctionController {
         return getCustomDateTime(startDatePicker, startHourSpinner, startMinuteSpinner);
     }
 
+    /** Kết thúc sau 1 giờ, 6 giờ, 1 ngày, hoặc mốc tự chọn. */
     private LocalDateTime resolveEndTime(LocalDateTime start) {
         if (start == null) {
             return null;
@@ -162,6 +168,7 @@ public class CreateAuctionController {
         return getCustomDateTime(endDatePicker, endHourSpinner, endMinuteSpinner);
     }
 
+    /** Ghép DatePicker với giờ và phút đã commit từ spinner. */
     private LocalDateTime getCustomDateTime(
             DatePicker date,
             Spinner<Integer> hourSpinner,
@@ -187,6 +194,7 @@ public class CreateAuctionController {
         }
     }
 
+    /** Chỉ hiện khối ngày giờ khi radio "tùy chọn" đang được chọn. */
     private void syncTimeModeVisibility() {
         boolean customStart = startCustomRadio.isSelected();
         boolean customEnd = endCustomRadio.isSelected();
@@ -196,6 +204,10 @@ public class CreateAuctionController {
         endCustomBox.setManaged(customEnd);
     }
 
+    /**
+     * Kiểm tra vật phẩm, tiêu đề, mốc thời gian và anti-sniping rồi gửi tạo phiên.
+     * Bắt đầu được phép lệch tối đa 5 giây so với "bây giờ" để tránh lệch đồng hồ.
+     */
     @FXML
     public void handleCreateAuction() {
         ItemDTO selectedItem = itemComboBox.getValue();
@@ -265,16 +277,19 @@ public class CreateAuctionController {
         }).start();
     }
 
+    /** Hiện lỗi đỏ trên nhãn trạng thái. */
     private void showError(String msg) {
         statusLabel.setText("Lỗi: " + msg);
         statusLabel.setStyle("-fx-text-fill: #e94560;");
     }
 
+    /** Preview khi chưa chọn vật phẩm. */
     private void renderEmptyItemPreview() {
         previewContentBox.getChildren().clear();
         addPreviewFullWidth("Trạng thái", "Chưa chọn sản phẩm.");
     }
 
+    /** Vẽ tên, giá, loại, tình trạng, thông số theo loại và mô tả. */
     private void renderItemPreview(ItemDTO item) {
         previewContentBox.getChildren().clear();
         List<VBox> fields = new ArrayList<>();
@@ -291,6 +306,7 @@ public class CreateAuctionController {
         }
     }
 
+    /** Thông số riêng của ELECTRONICS, ART hoặc VEHICLE. */
     private List<VBox> createTypeSpecificPreviewFields(ItemDTO item) {
         List<VBox> result = new ArrayList<>();
         Map<String, Object> fields = item.getExtraFields();
@@ -318,6 +334,7 @@ public class CreateAuctionController {
         return result;
     }
 
+    /** Xếp các ô preview thành hàng hai cột. */
     private void addPreviewRows(List<VBox> fields) {
         for (int i = 0; i < fields.size(); i += 2) {
             HBox row = new HBox(24);
@@ -333,6 +350,7 @@ public class CreateAuctionController {
         }
     }
 
+    /** Một ô "nhãn: giá trị"; highlight thì chữ đậm hơn. */
     private VBox createPreviewField(String name, String value, boolean highlight) {
         VBox fieldBox = new VBox();
         fieldBox.setMaxWidth(Double.MAX_VALUE);
@@ -350,6 +368,7 @@ public class CreateAuctionController {
         return fieldBox;
     }
 
+    /** Ô tiền rút gọn trên preview, tooltip giữ số đầy đủ. */
     private VBox createPreviewMoneyField(String name, double amount) {
         VBox fieldBox = createPreviewField(name, CurrencyFormatter.format(amount), true);
         if (!fieldBox.getChildren().isEmpty() && fieldBox.getChildren().get(0) instanceof Label label) {
@@ -358,19 +377,23 @@ public class CreateAuctionController {
         return fieldBox;
     }
 
+    /** Thêm một dòng preview chiếm hết chiều ngang, dùng cho mô tả dài. */
     private void addPreviewFullWidth(String name, String value) {
         VBox fieldBox = createPreviewField(name, value, false);
         previewContentBox.getChildren().add(fieldBox);
     }
 
+    /** Đọc một extraField và format số nếu cần. */
     private String fieldValue(Map<String, Object> fields, String key) {
         return formatFieldValue(fields.get(key));
     }
 
+    /** Ghép đơn vị (tháng, km) khi giá trị không rỗng. */
     private String withUnit(String value, String unit) {
         return value == null || value.isBlank() ? "" : value + " " + unit;
     }
 
+    /** Số nguyên bỏ .0; giá trị khác giữ toString. */
     private String formatFieldValue(Object value) {
         if (value instanceof Number number) {
             double doubleValue = number.doubleValue();
@@ -381,10 +404,12 @@ public class CreateAuctionController {
         return value != null ? value.toString() : "";
     }
 
+    /** Null thành chuỗi rỗng. */
     private String valueOrEmpty(Object value) {
         return value != null ? value.toString() : "";
     }
 
+    /** Tự điền "Đấu giá: tên vật phẩm" khi ô trống hoặc vẫn là tiêu đề tự sinh trước đó. */
     private void syncTitleWithSelectedItem(ItemDTO item) {
         String currentTitle = titleField.getText() != null ? titleField.getText().trim() : "";
         String nextAutoTitle = "Đấu giá: " + item.getName();
@@ -395,11 +420,13 @@ public class CreateAuctionController {
         }
     }
 
+    /** Màn "vật phẩm của tôi" truyền id để chọn sẵn sau khi danh sách tải xong. */
     public void setInitialItemId(String itemId) {
         this.initialItemId = itemId;
         selectInitialItemIfLoaded();
     }
 
+    /** Tải vật phẩm của seller và chỉ đưa những cái tạo phiên được vào combo. */
     private void loadMyItems() {
         String token = ClientSession.getInstance().getToken();
         if (token == null || token.isEmpty()) {
@@ -448,6 +475,7 @@ public class CreateAuctionController {
         return result;
     }
 
+    /** Có phiên OPEN, RUNNING hoặc WAITING_PAYMENT thì vật phẩm chưa được tạo phiên mới. */
     private boolean hasBlockingAuction(String token, ItemDTO item) {
         try {
             List<AuctionDTO> auctions = itemClient.getItemAuctionHistory(token, item.getId());
@@ -458,6 +486,7 @@ public class CreateAuctionController {
         }
     }
 
+    /** Chọn vật phẩm initialItemId nếu nó có trong combo; không có thì trả false. */
     private boolean selectInitialItemIfLoaded() {
         if (initialItemId == null || itemComboBox.getItems() == null) {
             return false;

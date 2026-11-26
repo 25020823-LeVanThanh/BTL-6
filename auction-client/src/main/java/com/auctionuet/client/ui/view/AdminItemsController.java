@@ -49,6 +49,7 @@ public class AdminItemsController {
     /** Đang gửi cấu hình lên server: chặn bấm công tắc thêm lần nữa. */
     private boolean settingUpdating;
 
+    /** Công tắc nhận Enter/Space, lưới co theo viewport, rồi tải cấu hình và sản phẩm. */
     @FXML
     public void initialize() {
         approvalSwitch.setFocusTraversable(true);
@@ -64,11 +65,16 @@ public class AdminItemsController {
         refreshData();
     }
 
+    /** Tải lại công tắc duyệt và lưới sản phẩm. */
     @FXML
     private void handleRefresh() {
         refreshData();
     }
 
+    /**
+     * Đảo trạng thái duyệt. Tắt thì hỏi xác nhận vì server sẽ duyệt hết hàng đang chờ.
+     * UI đổi ngay, request chạy nền.
+     */
     @FXML
     private void handleApprovalToggle() {
         if (settingUpdating) {
@@ -83,6 +89,7 @@ public class AdminItemsController {
         updateSetting(enabled);
     }
 
+    /** Hộp thoại OK/Cancel trước khi tắt chế độ phê duyệt. */
     private boolean confirmDisableApproval() {
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
         confirmation.setTitle("Tắt phê duyệt sản phẩm");
@@ -92,6 +99,7 @@ public class AdminItemsController {
         return answer.isPresent() && answer.get() == ButtonType.OK;
     }
 
+    /** Lấy cờ bật duyệt và danh sách sản phẩm cần kiểm trên luồng nền. */
     private void refreshData() {
         String token = ClientSession.getInstance().getToken();
         statusLabel.setText("Đang tải...");
@@ -112,6 +120,7 @@ public class AdminItemsController {
         }, "admin-item-approval-load").start();
     }
 
+    /** Bật class enabled và trượt núm công tắc sang phải khi chế độ duyệt đang mở. */
     private void renderSwitch(boolean enabled) {
         approvalEnabled = enabled;
         approvalSwitch.getStyleClass().remove("enabled");
@@ -125,6 +134,7 @@ public class AdminItemsController {
         transition.play();
     }
 
+    /** Dựng lại lưới thẻ; rỗng thì báo chưa có sản phẩm cần duyệt. */
     private void renderItems(List<ItemDTO> items) {
         itemGrid.getChildren().clear();
         if (items == null || items.isEmpty()) {
@@ -137,6 +147,7 @@ public class AdminItemsController {
         syncCardWidths(itemScrollPane.getViewportBounds());
     }
 
+    /** Thẻ sản phẩm: tên, giá, badge, seller, loại, giờ tạo. PENDING mới có nút Duyệt/Từ chối. */
     private VBox createItemCard(ItemDTO item) {
         VBox card = new VBox(10);
         card.getStyleClass().addAll("auction-card", "approval-item-card");
@@ -172,6 +183,7 @@ public class AdminItemsController {
         return card;
     }
 
+    /** Chia viewport thành đúng 3 cột, trừ khoảng cách giữa các thẻ. */
     private void syncCardWidths(Bounds viewportBounds) {
         if (viewportBounds == null || viewportBounds.getWidth() <= 0) {
             return;
@@ -191,6 +203,7 @@ public class AdminItemsController {
         });
     }
 
+    /** Nhãn phụ màu secondary, cho phép xuống dòng. */
     private Label createDetailLabel(String text) {
         Label label = new Label(text);
         label.getStyleClass().add("text-secondary");
@@ -198,12 +211,14 @@ public class AdminItemsController {
         return label;
     }
 
+    /** Nút hành động dùng chung style của thẻ kiểm duyệt. */
     private Button createActionButton(String text) {
         Button button = new Button(text);
         button.getStyleClass().add("approval-action-button");
         return button;
     }
 
+    /** Mở màn chi tiết sản phẩm và truyền ItemDTO đã có sẵn, không gọi API thêm. */
     private void openDetail(ItemDTO item) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/AdminItemDetailView.fxml"));
@@ -216,6 +231,7 @@ public class AdminItemsController {
         }
     }
 
+    /** Thay StackPane nội dung của Dashboard bằng view mới. */
     private void replaceContent(Parent content) {
         Parent root = itemGrid.getScene().getRoot();
         if (root instanceof HBox dashboard) {
@@ -225,6 +241,10 @@ public class AdminItemsController {
         }
     }
 
+    /**
+     * Gửi bật/tắt duyệt lên server.
+     * Lỗi thì trả công tắc về trạng thái ngược lại và báo trên statusLabel.
+     */
     private void updateSetting(boolean enabled) {
         String token = ClientSession.getInstance().getToken();
         settingUpdating = true;
@@ -249,6 +269,7 @@ public class AdminItemsController {
         }, "admin-item-approval-setting").start();
     }
 
+    /** Duyệt hoặc từ chối một sản phẩm rồi tải lại lưới. */
     private void updateStatus(ItemDTO item, ItemApprovalStatus status) {
         String token = ClientSession.getInstance().getToken();
         statusLabel.setText("Đang cập nhật sản phẩm...");
@@ -262,10 +283,12 @@ public class AdminItemsController {
         }, "admin-item-approval-update").start();
     }
 
+    /** Giờ tạo sản phẩm; thiếu thì "Chưa rõ". */
     private String formatCreatedAt(ItemDTO item) {
         return item.getCreatedAt() != null ? item.getCreatedAt().format(DATE_FORMAT) : "Chưa rõ";
     }
 
+    /** Nhãn tiếng Việt của PENDING / APPROVED / REJECTED. */
     private String formatStatus(ItemApprovalStatus status) {
         return switch (status) {
             case PENDING -> "Chờ duyệt";
@@ -274,6 +297,7 @@ public class AdminItemsController {
         };
     }
 
+    /** Màu badge: chờ = open, đã duyệt = running, từ chối = canceled. */
     private void applyStatusStyle(Label badge, ItemApprovalStatus status) {
         switch (status) {
             case PENDING -> badge.getStyleClass().add("status-badge-open");

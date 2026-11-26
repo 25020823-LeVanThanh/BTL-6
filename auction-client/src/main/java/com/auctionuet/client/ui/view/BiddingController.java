@@ -107,21 +107,31 @@ public class BiddingController {
     @FXML
     private ListView<String> bidHistoryList;
 
+    /** Id phiên đang mở trong phòng đặt giá. */
     private String currentAuctionId;
+    /** Mô tả phiên, hiện trong hộp xác nhận cọc. */
     private String auctionDescription;
     private final BidClient bidClient = new BidClient();
     private final AuctionClient auctionClient = new AuctionClient();
     private final WalletClient walletClient = new WalletClient();
     private final XYChart.Series<Number, Number> bidPriceSeries = new XYChart.Series<>();
 
+    /** Đồng hồ đếm ngược tới endDateTime. */
     private javafx.animation.Timeline countdownTimeline;
+    /** Giờ kết thúc hiện tại, có thể bị anti-sniping đẩy muộn hơn. */
     private LocalDateTime endDateTime;
+    /** Số tiền cọc của phiên, mặc định 10% giá khởi điểm nếu server không gửi. */
     private double auctionDepositAmount;
+    /** User đã đồng ý cọc và đặt giá ít nhất một lần trong phiên này. */
     private boolean currentUserDeposited;
+    /** Trạng thái Auto-Bid lần kiểm tra trước, để chỉ báo khi vừa chuyển sang hết hiệu lực. */
     private AutoBidStatus lastAutoBidStatus;
+    /** Đã nhận ít nhất một lần check Auto-Bid, tránh báo nhầm lúc mới vào phòng. */
     private boolean autoBidStateLoaded;
+    /** Có bid của người khác vừa xảy ra, dùng để quyết định có ghi thông báo mất hiệu lực không. */
     private boolean pendingAutoBidLossNotice;
     private String currentLeaderId;
+    /** Thời điểm user bắt đầu giữ vị trí dẫn đầu, để đếm đủ khoảng 3 giây. */
     private LocalDateTime currentUserLeaderObservedAt;
     private javafx.animation.PauseTransition delayedAutoBidCheck;
 
@@ -131,6 +141,7 @@ public class BiddingController {
     private final GeminiVoiceServiceClient voiceServiceClient = new GeminiVoiceServiceClient();
     private javafx.event.EventHandler<KeyEvent> keyHandler;
 
+    /** Chuẩn bị biểu đồ giá và ba ô tiền (bid tay, trần auto-bid, bước tăng). */
     @FXML
     public void initialize() {
         setupBidPriceChart();
@@ -139,6 +150,7 @@ public class BiddingController {
         CurrencyInputHelper.setupCurrencyInput(incrementField);
     }
 
+    /** Màn trước truyền id phiên: tải chi tiết, ví, lịch sử bid, subscribe push và kiểm tra Auto-Bid. */
     public void setAuctionId(String auctionId) {
         this.currentAuctionId = auctionId;
 
@@ -152,6 +164,7 @@ public class BiddingController {
         this.tempVoiceFile = new File(System.getProperty("java.io.tmpdir"), "uet_voice_bid.wav");
     }
 
+    /** Điền tiêu đề, seller, giá, cọc, người dẫn đầu và bắt đầu đồng hồ; phiên hủy thì khóa form. */
     private void loadAuctionDetail() {
         String token = ClientSession.getInstance().getToken();
         new Thread(() -> {
@@ -187,6 +200,7 @@ public class BiddingController {
         }).start();
     }
 
+    /** Lấy số dư khả dụng để bidder biết còn đủ tiền cọc hay trả giá không. */
     private void loadWalletInfo() {
         String token = ClientSession.getInstance().getToken();
         if (token == null)
@@ -202,6 +216,7 @@ public class BiddingController {
         }).start();
     }
 
+    /** Đổ lịch sử bid mới nhất lên trên và vẽ từng điểm giá; bid cuối xác định người dẫn đầu. */
     private void loadBidHistory() {
         String token = ClientSession.getInstance().getToken();
         new Thread(() -> {
@@ -227,6 +242,11 @@ public class BiddingController {
         }).start();
     }
 
+    /**
+     * Push của đúng phiên này:
+     * bid mới, gia hạn anti-sniping, kết thúc, hoặc bị hủy.
+     * Bid tay của người khác được kiểm tra lại Auto-Bid sau vài giây.
+     */
     private void onPushMessage(PushMessage push) {
         if (push == null || push.getPushType() == null)
             return;
@@ -310,6 +330,7 @@ public class BiddingController {
         });
     }
 
+    /** Dừng đồng hồ, hiện lý do hủy và khóa mọi ô đặt giá lẫn Auto-Bid. */
     private void showCanceledState(String reason) {
         if (countdownTimeline != null)
             countdownTimeline.stop();
@@ -328,6 +349,7 @@ public class BiddingController {
         cancelAutoBidBtn.setDisable(true);
     }
 
+    /** Đăng ký kênh push của phiên; lỗi hiện trên nhãn trạng thái bid. */
     private void subscribeToAuction(String auctionId) {
         new Thread(() -> {
             try {
@@ -352,6 +374,7 @@ public class BiddingController {
         }
     }
 
+    /** Đồng hồ mỗi giây theo endDateTime; hết giờ thì ghi "Đã kết thúc" và dừng. */
     private void startCountdown() {
         if (countdownTimeline != null) {
             countdownTimeline.stop();
@@ -373,6 +396,7 @@ public class BiddingController {
         countdownTimeline.play();
     }
 
+    /** Biểu đồ giá, tắt animation để điểm realtime không làm chart giật. */
     private void setupBidPriceChart() {
         bidPriceSeries.setName("Giá bid");
         bidPriceChart.setAnimated(false);
@@ -381,15 +405,21 @@ public class BiddingController {
         bidPriceChart.getData().add(bidPriceSeries);
     }
 
+    /** Thêm một điểm (thứ tự bid, số tiền) vào biểu đồ. */
     private void appendBidPricePoint(BidDTO bid) {
         int bidIndex = bidPriceSeries.getData().size() + 1;
         bidPriceSeries.getData().add(new XYChart.Data<>(bidIndex, bid.getAmount()));
     }
 
+    /** Cập nhật người dẫn đầu mà không reset đồng hồ 3 giây. */
     private void updateCurrentLeader(UserDTO leader) {
         updateCurrentLeader(leader, false);
     }
 
+    /**
+     * Ghi nhận người dẫn đầu.
+     * Nếu chính user vừa lên dẫn hoặc bid của họ đổi thì đếm lại khoảng 3 giây ổn định trước khi bật lại Auto-Bid.
+     */
     private void updateCurrentLeader(UserDTO leader, boolean leaderBidChanged) {
         String previousLeaderId = currentLeaderId;
         currentLeaderId = leader != null ? leader.getId() : null;
@@ -408,10 +438,12 @@ public class BiddingController {
         currentUserLeaderObservedAt = null;
     }
 
+    /** Sau 3,5 giây hỏi lại trạng thái Auto-Bid, dùng khi có bid tay từ người khác. */
     private void scheduleDelayedAutoBidCheck() {
         scheduleDelayedAutoBidCheck(3.5);
     }
 
+    /** Hẹn kiểm tra Auto-Bid; lần hẹn cũ bị hủy để không chạy chồng. */
     private void scheduleDelayedAutoBidCheck(double seconds) {
         if (delayedAutoBidCheck != null) {
             delayedAutoBidCheck.stop();
@@ -421,6 +453,7 @@ public class BiddingController {
         delayedAutoBidCheck.playFromStart();
     }
 
+    /** Hỏi server cấu hình Auto-Bid hiện tại rồi điền trần, bước tăng và trạng thái nút. */
     private void checkAutoBidState() {
         String token = ClientSession.getInstance().getToken();
         new Thread(() -> {
@@ -445,11 +478,13 @@ public class BiddingController {
         }).start();
     }
 
+    /** Nút mic trên FXML: bật hoặc dừng ghi âm đặt giá. */
     @FXML
     private void handleMicClicked() {
         handleVoiceBiddingToggle();
     }
 
+    /** Chưa có API key thì mở popup cấu hình; có key thì bắt đầu hoặc dừng ghi âm. */
     private void handleVoiceBiddingToggle() {
         // 1. Kiểm tra API Key trong cấu hình
         String apiKey = ClientSession.getInstance().getGeminiApiKey();
@@ -476,6 +511,7 @@ public class BiddingController {
         }
     }
 
+    /** Ghi WAV tạm và đổi nút mic sang trạng thái đang thu. */
     private void startVoiceRecording() {
         try {
             isRecording = true;
@@ -499,6 +535,7 @@ public class BiddingController {
         }
     }
 
+    /** Dừng mic, gửi file cho Gemini và điền số tiền nhận ra vào ô đặt giá. */
     private void stopVoiceRecordingAndProcess(String apiKey) {
         if (audioRecorder == null)
             return;
@@ -559,6 +596,7 @@ public class BiddingController {
         }
     }
 
+    /** Popup modal cấu hình model và API key Gemini; chờ đóng rồi mới tiếp tục. */
     @FXML
     private void handleVoiceSettingsClicked() {
         try {
@@ -587,6 +625,10 @@ public class BiddingController {
         }
     }
 
+    /**
+     * Lần đặt giá đầu phải đồng ý cọc 10% giá khởi điểm.
+     * Đã cọc rồi thì bỏ qua hộp thoại. Trả false nếu user hủy.
+     */
     private boolean confirmDepositIfNeeded() {
         if (currentUserDeposited) {
             return true;
@@ -633,6 +675,7 @@ public class BiddingController {
         return result.isPresent() && result.get() == ButtonType.OK;
     }
 
+    /** Đặt giá tay sau khi đồng ý cọc; thành công thì đánh dấu đã cọc và tải lại ví. */
     @FXML
     private void handlePlaceBid() {
         String amountText = bidAmountField.getText().replace(",", "").trim();
@@ -679,6 +722,7 @@ public class BiddingController {
         }
     }
 
+    /** Bật Auto-Bid với trần và bước tăng; cũng yêu cầu cọc nếu chưa đặt. */
     @FXML
     private void handleSetAutoBid() {
         String maxText = maxBidField.getText().replace(",", "").trim();
@@ -724,6 +768,7 @@ public class BiddingController {
         }
     }
 
+    /** Tắt Auto-Bid trên server và mở lại nút bật. */
     @FXML
     private void handleCancelAutoBid() {
         String token = ClientSession.getInstance().getToken();
@@ -745,6 +790,7 @@ public class BiddingController {
         }).start();
     }
 
+    /** Dọn phòng đặt giá rồi quay về danh sách phiên. */
     @FXML
     private void handleBack() {
         cleanup();
@@ -765,6 +811,7 @@ public class BiddingController {
         }
     }
 
+    /** Một dòng lịch sử: giờ, người đặt, số tiền và loại bid (tay hoặc auto). */
     private String formatBid(BidDTO bid) {
         String time = bid.getTimestamp() != null ? bid.getTimestamp().format(DISPLAY_TIME) : "";
         String type = bid.getBidType() != null ? " - " + bid.getBidType().name() : "";
@@ -772,16 +819,23 @@ public class BiddingController {
                 + CurrencyFormatter.format(bid.getAmount()) + type;
     }
 
+    /** Hiện số dư khả dụng, số lớn được rút gọn kèm tooltip. */
     private void renderWallet(WalletResponseDTO wallet) {
         double balance = wallet != null ? wallet.getBalance() : 0.0;
         CurrencyFormatter.setMoneyText(balanceLabel, balance);
     }
 
+    /** Hiện tiền cọc của phiên nếu user đã đặt; chưa cọc thì 0. */
     private void renderAuctionDeposit() {
         double deposit = currentUserDeposited ? auctionDepositAmount : 0.0;
         CurrencyFormatter.setMoneyText(depositLabel, deposit);
     }
 
+    /**
+     * PROTECTING: đang giữ giá, khóa nút bật.
+     * INEFFECTIVE: vượt trần, chỉ cho bật lại sau khi user dẫn đầu đủ khoảng 3 giây.
+     * Trạng thái khác: đang chờ và sẽ tự bid khi cần.
+     */
     private void renderAutoBidState(AutoBidConfigDTO state) {
         AutoBidStatus status = state.getStatus();
         // Chỉ báo một lần khi Auto-Bid vừa chuyển sang hết hiệu lực vì bị vượt trần.
@@ -832,26 +886,31 @@ public class BiddingController {
         pendingAutoBidLossNotice = false;
     }
 
+    /** Chuỗi tiền rút gọn dùng trong câu trạng thái Auto-Bid. */
     private String formatMoney(double amount) {
         return CurrencyFormatter.format(amount);
     }
 
+    /** User đang đăng nhập có đúng là người dẫn đầu hiện tại không. */
     private boolean isCurrentUserLeader() {
         UserDTO currentUser = ClientSession.getInstance().getCurrentUser();
         return currentUser != null && currentLeaderId != null && currentLeaderId.equals(currentUser.getId());
     }
 
+    /** Đã giữ vị trí dẫn đầu liên tục đủ AUTO_BID_STABILITY_CHECK_SECONDS. */
     private boolean hasObservedCurrentUserLeadLongEnough() {
         return currentUserLeaderObservedAt != null
                 && Duration.between(currentUserLeaderObservedAt, LocalDateTime.now()).toMillis() >= Math
                         .round(AUTO_BID_STABILITY_CHECK_SECONDS * 1000);
     }
 
+    /** So id bidder với user trong session. */
     private boolean isCurrentUser(UserDTO user) {
         UserDTO currentUser = ClientSession.getInstance().getCurrentUser();
         return user != null && currentUser != null && user.getId().equals(currentUser.getId());
     }
 
+    /** Username hoặc "Chưa rõ". */
     private String usernameOf(UserDTO user) {
         return user != null ? user.getUsername() : "Chưa rõ";
     }

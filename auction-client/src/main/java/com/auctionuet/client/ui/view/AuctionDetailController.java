@@ -81,6 +81,7 @@ public class AuctionDetailController {
     private final XYChart.Series<Number, Number> bidPriceSeries = new XYChart.Series<>();
     private AuctionDTO currentAuction;
 
+    /** Gắn nút đặt giá, thanh toán, bảng lịch sử, biểu đồ và ô nhập tiền có dấu phẩy. */
     @FXML
     public void initialize() {
         btnPlaceBid.setOnAction(e -> handlePlaceBid());
@@ -133,6 +134,7 @@ public class AuctionDetailController {
         }).start();
     }
 
+    /** Điền nhãn, ảnh, nút theo vai trò và đăng ký push nếu phiên còn đổi trạng thái. */
     private void updateUI(AuctionDTO dto) {
         this.currentAuction = dto;
         nameLabel.setText(dto.getTitle());
@@ -190,6 +192,7 @@ public class AuctionDetailController {
         }
     }
 
+    /** Seller mở phiên OPEN sớm; thành công thì tải lại chi tiết ở trạng thái RUNNING. */
     @FXML
     private void handleStartAuction() {
         String token = ClientSession.getInstance().getToken();
@@ -217,6 +220,7 @@ public class AuctionDetailController {
         }).start();
     }
 
+    /** Gửi một mức giá thủ công (bỏ dấu phẩy) rồi tải lại chi tiết nếu server chấp nhận. */
     private void handlePlaceBid() {
         String amountText = bidAmountField.getText().replace(",", "").trim();
 
@@ -247,6 +251,7 @@ public class AuctionDetailController {
         }
     }
 
+    /** Người thắng xác nhận trừ phần còn lại (giá thắng trừ cọc) từ ví. */
     private void handlePayAuction() {
         if (currentAuction == null) return;
 
@@ -295,6 +300,7 @@ public class AuctionDetailController {
         }).start();
     }
 
+    /** Admin nhập lý do rồi hủy phiên; lý do trống thì không gửi. */
     @FXML
     private void handleAdminCancelAuction() {
         if (currentAuction == null || !canAdminCancel(currentAuction.getStatus())) {
@@ -328,6 +334,7 @@ public class AuctionDetailController {
         }, "admin-cancel-auction").start();
     }
 
+    /** Cột người đặt, số tiền và thời điểm của bảng lịch sử bid. */
     private void setupBidHistoryTable() {
         bidderCol.setCellValueFactory(cell ->
                 new ReadOnlyStringWrapper(usernameOf(cell.getValue().getBidder())));
@@ -336,6 +343,7 @@ public class AuctionDetailController {
         timeCol.setCellValueFactory(cell -> new ReadOnlyStringWrapper(formatTime(cell.getValue().getTimestamp())));
     }
 
+    /** Biểu đồ đường giá bid, tắt animation để điểm mới không làm giật chart. */
     private void setupBidPriceChart() {
         bidPriceSeries.setName("Giá bid");
         bidPriceChart.setAnimated(false);
@@ -344,6 +352,7 @@ public class AuctionDetailController {
         bidPriceChart.getData().add(bidPriceSeries);
     }
 
+    /** Tải toàn bộ bid cũ rồi vẽ lần lượt vào bảng và biểu đồ. */
     private void loadBidHistory() {
         String token = ClientSession.getInstance().getToken();
         if (token == null || currentAuctionId == null) {
@@ -368,6 +377,7 @@ public class AuctionDetailController {
         }).start();
     }
 
+    /** Thêm một bid vào bảng, một điểm trên chart và cập nhật giá cùng người dẫn đầu. */
     private void appendBid(BidDTO bid) {
         bidHistoryTable.getItems().add(bid);
         int bidIndex = bidPriceSeries.getData().size() + 1;
@@ -376,6 +386,7 @@ public class AuctionDetailController {
         leaderLabel.setText("Người dẫn đầu: " + usernameOf(bid.getBidder()));
     }
 
+    /** Chỉ người thắng của phiên WAITING_PAYMENT thấy khu vực trả tiền và số còn phải trả. */
     private void renderPaymentArea(AuctionDTO dto, String currentUserId) {
         boolean canPay = dto.getStatus() == AuctionStatus.WAITING_PAYMENT
                 && dto.getWinner() != null
@@ -403,6 +414,7 @@ public class AuctionDetailController {
                 CurrencyFormatter.formatFull(deposit)));
     }
 
+    /** Đăng ký nhận push của phiên một lần; lỗi thì hiện trên nhãn bid. */
     private void subscribeToAuction(String auctionId) {
         if (subscribed) {
             return;
@@ -420,6 +432,10 @@ public class AuctionDetailController {
         }).start();
     }
 
+    /**
+     * Push đúng phiên này mới xử lý:
+     * bắt đầu (bidder vào phòng đặt giá), bid mới, kết thúc, hoặc bị hủy.
+     */
     private void onPushMessage(PushMessage push) {
         if (push == null || push.getPushType() == null) {
             return;
@@ -482,6 +498,7 @@ public class AuctionDetailController {
         }
     }
 
+    /** Admin thấy nút hủy khi phiên còn OPEN, RUNNING hoặc WAITING_PAYMENT. */
     private void renderAdminCancelArea(AuctionDTO dto) {
         boolean visible = ClientSession.getInstance().isAdmin() && canAdminCancel(dto.getStatus());
         adminCancelArea.setVisible(visible);
@@ -492,16 +509,19 @@ public class AuctionDetailController {
         }
     }
 
+    /** Phiên đã kết thúc, đã trả hoặc đã hủy thì admin không hủy được nữa. */
     private boolean canAdminCancel(AuctionStatus status) {
         return status == AuctionStatus.OPEN
                 || status == AuctionStatus.RUNNING
                 || status == AuctionStatus.WAITING_PAYMENT;
     }
 
+    /** Hiện thông báo lỗi hoặc trạng thái trên khu vực hủy của admin. */
     private void showAdminCancelError(String message) {
         adminCancelErrorLabel.setText(message);
     }
 
+    /** Hiện lý do hủy khi phiên CANCELED có canceledReason. */
     private void renderCancellationInfo(AuctionDTO dto) {
         boolean canceled = dto.getStatus() == AuctionStatus.CANCELED
                 && dto.getCanceledReason() != null
@@ -511,6 +531,7 @@ public class AuctionDetailController {
         cancelReasonLabel.setText(canceled ? "Lý do hủy: " + dto.getCanceledReason() : "");
     }
 
+    /** Hủy subscribe của màn chi tiết rồi thay nội dung bằng phòng đặt giá. */
     private void openBiddingView() {
         cleanup();
         try {
@@ -543,16 +564,19 @@ public class AuctionDetailController {
         ServerConnection.getInstance().setPushListener(null);
     }
 
+    /** Hiện lỗi đặt giá màu đỏ. */
     private void showBidError(String message) {
         showBidError(message, javafx.scene.paint.Color.web("#ff4757"));
     }
 
+    /** Hiện thông báo đặt giá với màu tùy trạng thái (đỏ, cam, xanh). */
     private void showBidError(String message, javafx.scene.paint.Color color) {
         bidErrorLabel.setText(message);
         bidErrorLabel.setTextFill(color);
         bidErrorLabel.setVisible(true);
     }
 
+    /** Đổi chữ và class CSS của badge theo trạng thái phiên. */
     private void renderStatusBadge(AuctionStatus status) {
         clearStatusBadgeStyle();
         statusLabel.setTextFill(null);
@@ -582,6 +606,7 @@ public class AuctionDetailController {
         }
     }
 
+    /** Gỡ mọi class badge cũ trước khi gắn class mới. */
     private void clearStatusBadgeStyle() {
         statusLabel.getStyleClass().removeAll(
                 "status-badge-running",
@@ -590,6 +615,7 @@ public class AuctionDetailController {
                 "status-badge-canceled");
     }
 
+    /** Mỗi thông số phụ của vật phẩm là một dòng trong specBox. */
     private void renderExtraFields(Map<String, Object> extraFields) {
         specBox.getChildren().clear();
         if (extraFields == null || extraFields.isEmpty()) {
@@ -605,6 +631,7 @@ public class AuctionDetailController {
         }
     }
 
+    /** camelCase thành nhãn; vài key có tên cố định. */
     private String formatExtraFieldName(String key) {
         if ("brand".equals(key)) {
             return "Brand";
@@ -627,6 +654,7 @@ public class AuctionDetailController {
         return result.toString();
     }
 
+    /** Số nguyên bỏ phần .0. */
     private String formatExtraFieldValue(Object value) {
         if (value instanceof Number number) {
             double doubleValue = number.doubleValue();
@@ -637,18 +665,22 @@ public class AuctionDetailController {
         return value != null ? value.toString() : "";
     }
 
+    /** dd/MM/yyyy HH:mm hoặc "Chưa rõ". */
     private String formatTime(LocalDateTime time) {
         return time != null ? time.format(DISPLAY_TIME) : "Chưa rõ";
     }
 
+    /** Null thành chuỗi rỗng. */
     private String nullToEmpty(String value) {
         return value != null ? value : "";
     }
 
+    /** Username hoặc "Chưa rõ". */
     private String usernameOf(UserDTO user) {
         return user != null ? user.getUsername() : "Chưa rõ";
     }
 
+    /** Object null thành chuỗi rỗng. */
     private String valueOrEmpty(Object value) {
         return value != null ? value.toString() : "";
     }

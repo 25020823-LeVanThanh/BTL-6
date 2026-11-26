@@ -17,6 +17,7 @@ public class SceneManager {
 
     private SceneManager() {}
 
+    /** Tạo đúng một SceneManager cho cả ứng dụng. */
     public static SceneManager getInstance() {
         if (instance == null) {
             instance = new SceneManager();
@@ -24,6 +25,7 @@ public class SceneManager {
         return instance;
     }
 
+    /** Launcher gọi một lần với Stage chính trước khi đổi màn hình. */
     public void init(Stage stage) {
         this.primaryStage = stage;
     }

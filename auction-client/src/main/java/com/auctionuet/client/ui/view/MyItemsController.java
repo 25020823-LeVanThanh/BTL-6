@@ -41,6 +41,7 @@ public class MyItemsController {
     private final ItemClient itemClient = new ItemClient();
     private List<ItemCardData> allItems = new ArrayList<>();
 
+    /** Chỉ seller thấy nút tạo mới. Mở màn là tải danh sách vật phẩm. */
     @FXML
     public void initialize() {
         boolean seller = ClientSession.getInstance().isSeller();
@@ -52,6 +53,7 @@ public class MyItemsController {
         loadMyItems();
     }
 
+    /** Gõ hoặc Enter đều lọc lưới ngay, không cần nút tìm riêng. */
     private void setupFilters() {
         searchField.textProperty().addListener((obs, oldValue, newValue) -> applyFilters());
         searchField.setOnAction(e -> applyFilters());
@@ -78,18 +80,21 @@ public class MyItemsController {
         btnToggleCreate.setText(visible ? "Ẩn" : "+  New");
     }
 
+    /** Tạo xong thì đóng form và tải lại lưới. */
     private void handleItemCreated() {
         hideCreateItemForm();
         statusLabel.setText("Đăng sản phẩm thành công. Đang tải lại danh sách...");
         loadMyItems();
     }
 
+    /** Ẩn form tạo và trả chữ nút về "+  New". */
     private void hideCreateItemForm() {
         createItemHost.setVisible(false);
         createItemHost.setManaged(false);
         btnToggleCreate.setText("+  New");
     }
 
+    /** Lấy vật phẩm của user rồi gắn trạng thái phiên mới nhất cho từng thẻ. */
     private void loadMyItems() {
         String token = ClientSession.getInstance().getToken();
         if (token == null) {
@@ -111,6 +116,7 @@ public class MyItemsController {
         }).start();
     }
 
+    /** Ghép mỗi ItemDTO với trạng thái phiên đại diện. */
     private List<ItemCardData> loadItemCardData(String token, List<ItemDTO> items) {
         List<ItemCardData> result = new ArrayList<>();
         if (items == null) {
@@ -123,6 +129,7 @@ public class MyItemsController {
         return result;
     }
 
+    /** Lịch sử phiên rỗng hoặc lỗi thì coi là chưa từng đấu giá. */
     private String loadAuctionStatus(String token, ItemDTO item) {
         try {
             List<AuctionDTO> auctions = itemClient.getItemAuctionHistory(token, item.getId());
@@ -138,11 +145,13 @@ public class MyItemsController {
         }
     }
 
+    /** Nút tìm trên FXML gọi cùng bộ lọc với ô nhập. */
     @FXML
     private void handleSearch() {
         applyFilters();
     }
 
+    /** Lọc theo từ khóa đã chuẩn hóa chữ thường. */
     private void applyFilters() {
         String keyword = searchField.getText() != null
                 ? searchField.getText().trim().toLowerCase(Locale.ROOT)
@@ -153,6 +162,7 @@ public class MyItemsController {
         renderItems(filteredItems);
     }
 
+    /** Khớp tên, loại, tình trạng, trạng thái duyệt, trạng thái phiên hoặc thông số phụ. */
     private boolean matchesKeyword(ItemCardData item, String keyword) {
         if (keyword.isEmpty()) {
             return true;
@@ -167,10 +177,12 @@ public class MyItemsController {
                 || text(extraFieldsText(dto.getExtraFields())).contains(keyword);
     }
 
+    /** Null thành chuỗi rỗng chữ thường để contains không ném lỗi. */
     private String text(String value) {
         return value != null ? value.toLowerCase(Locale.ROOT) : "";
     }
 
+    /** Vẽ lưới; phân biệt "chưa có vật phẩm" và "không khớp từ khóa". */
     private void renderItems(List<ItemCardData> items) {
         itemGrid.getChildren().clear();
         if (items == null || items.isEmpty()) {
@@ -184,6 +196,7 @@ public class MyItemsController {
         }
     }
 
+    /** Thẻ: tên, giá, badge duyệt, badge phiên, thông số và nút lịch sử / tạo phiên / gỡ. */
     private VBox createItemCard(ItemCardData data) {
         ItemDTO item = data.item();
         VBox card = new VBox(11);
@@ -258,6 +271,7 @@ public class MyItemsController {
         return card;
     }
 
+    /** Nhãn tiếng Việt của trạng thái duyệt. */
     private String formatApprovalStatus(ItemApprovalStatus status) {
         return switch (status) {
             case PENDING -> "Chờ duyệt";
@@ -266,6 +280,7 @@ public class MyItemsController {
         };
     }
 
+    /** Đã duyệt màu finished, từ chối màu lỗi, chờ duyệt màu open. */
     private void applyApprovalStatusStyle(Label badge, ItemApprovalStatus status) {
         if (status == ItemApprovalStatus.APPROVED) {
             badge.getStyleClass().add("status-badge-finished");
@@ -276,10 +291,12 @@ public class MyItemsController {
         }
     }
 
+    /** Badge phiên hiện đúng mã trạng thái server, kể cả NOT_AUCTIONS. */
     private String formatAuctionStatusBadge(String auctionStatus) {
         return auctionStatus;
     }
 
+    /** OPEN, RUNNING, WAITING_PAYMENT thì không cho tạo phiên mới. */
     private boolean isBlockingAuctionStatus(String auctionStatus) {
         try {
             return AuctionViewFilter.isBlockingStatus(AuctionStatus.valueOf(auctionStatus));
@@ -288,6 +305,7 @@ public class MyItemsController {
         }
     }
 
+    /** RUNNING nổi bật; FINISHED/PAID màu kết thúc; trạng thái còn lại màu chờ. */
     private void applyAuctionStatusStyle(Label badge, String auctionStatus) {
         if ("RUNNING".equals(auctionStatus)) {
             badge.getStyleClass().add("status-badge-running");
@@ -298,6 +316,7 @@ public class MyItemsController {
         }
     }
 
+    /** Mỗi extraField thành một nhãn nhỏ trên thẻ. */
     private List<Label> createExtraFieldLabels(Map<String, Object> extraFields) {
         List<Label> labels = new ArrayList<>();
         if (extraFields == null || extraFields.isEmpty()) {
@@ -314,6 +333,7 @@ public class MyItemsController {
         return labels;
     }
 
+    /** Đổi key camelCase thành nhãn đọc được; vài key có tên cố định. */
     private String formatExtraFieldName(String key) {
         if ("brand".equals(key)) {
             return "Brand";
@@ -335,6 +355,7 @@ public class MyItemsController {
         return result.toString();
     }
 
+    /** Số nguyên bỏ phần .0. */
     private String formatExtraFieldValue(Object value) {
         if (value instanceof Number number) {
             double doubleValue = number.doubleValue();
@@ -345,6 +366,7 @@ public class MyItemsController {
         return value != null ? value.toString() : "";
     }
 
+    /** Nối key và value thành một chuỗi để ô tìm có thể khớp thông số phụ. */
     private String extraFieldsText(Map<String, Object> extraFields) {
         if (extraFields == null || extraFields.isEmpty()) {
             return "";
@@ -356,6 +378,7 @@ public class MyItemsController {
         return builder.toString();
     }
 
+    /** Gỡ vật phẩm trên server rồi tải lại danh sách. */
     private void archiveItem(ItemDTO item) {
         String token = ClientSession.getInstance().getToken();
         new Thread(() -> {
@@ -371,6 +394,7 @@ public class MyItemsController {
         }).start();
     }
 
+    /** Mở lịch sử phiên của vật phẩm trong vùng nội dung Dashboard. */
     private void openItemHistory(Button source, ItemDTO item) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ItemHistoryView.fxml"));
@@ -390,6 +414,7 @@ public class MyItemsController {
         }
     }
 
+    /** Mở form tạo phiên và chọn sẵn vật phẩm vừa bấm. */
     private void openCreateAuction(ItemDTO item) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/CreateAuctionView.fxml"));
@@ -409,6 +434,7 @@ public class MyItemsController {
         }
     }
 
+    /** Dữ liệu một thẻ: vật phẩm và mã trạng thái phiên đại diện. */
     private record ItemCardData(ItemDTO item, String auctionStatus) {
     }
 }

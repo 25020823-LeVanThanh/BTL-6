@@ -15,6 +15,7 @@ public class ThemeManager {
 
     private ThemeManager() {}
 
+    /** Tạo đúng một ThemeManager; theme mặc định là sáng. */
     public static ThemeManager getInstance() {
         if (instance == null) {
             instance = new ThemeManager();
@@ -22,18 +23,22 @@ public class ThemeManager {
         return instance;
     }
 
+    /** Theme đang dùng, giữ qua các lần đổi scene. */
     public Theme getCurrentTheme() {
         return currentTheme;
     }
 
+    /** Gán theme mà chưa áp CSS; applyTheme mới gắn stylesheet. */
     public void setTheme(Theme theme) {
         this.currentTheme = theme;
     }
 
+    /** True khi theme hiện tại là tối. */
     public boolean isDarkMode() {
         return currentTheme == Theme.DARK;
     }
 
+    /** Đảo sáng/tối. Nút giao diện gọi thêm applyTheme để thấy ngay. */
     public void toggleTheme() {
         currentTheme = isDarkMode() ? Theme.LIGHT : Theme.DARK;
     }

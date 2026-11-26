@@ -49,6 +49,7 @@ public class WalletController {
     private final WalletClient walletClient = new WalletClient();
     private final AuctionClient auctionClient = new AuctionClient();
 
+    /** Khi mở ví: tải số dư, lịch sử giao dịch và bật nhập tiền có dấu phẩy. */
     @FXML
     public void initialize() {
         loadWalletInfo();
@@ -57,6 +58,7 @@ public class WalletController {
         CurrencyInputHelper.setupCurrencyInput(withdrawAmountField);
     }
 
+    /** Gọi API ví trên luồng nền rồi cập nhật ba nhãn số dư trên luồng JavaFX. */
     private void loadWalletInfo() {
         String token = ClientSession.getInstance().getToken();
         if (token == null) return;
@@ -74,6 +76,7 @@ public class WalletController {
         }).start();
     }
 
+    /** Lấy giao dịch của user, tra tên phiên rồi đổ vào ListView. */
     private void loadTransactionHistory() {
         String token = ClientSession.getInstance().getToken();
         if (token == null || transactionListView == null) return;
@@ -89,6 +92,7 @@ public class WalletController {
         }).start();
     }
 
+    /** Kiểm tra số tiền nạp (bỏ dấu phẩy) rồi mở popup QR nếu số dương hợp lệ. */
     @FXML
     private void handleOpenDepositPopup() {
         String amountText = depositAmountField.getText().replace(",", "").trim();
@@ -145,6 +149,7 @@ public class WalletController {
         }
     }
 
+    /** Rút tiền trên luồng nền; thành công thì vẽ lại số dư và tải lại lịch sử. */
     @FXML
     private void handleWithdraw() {
         String amountText = withdrawAmountField.getText().replace(",", "").trim();
@@ -185,6 +190,7 @@ public class WalletController {
         }
     }
 
+    /** Hiện số dư khả dụng, số đang đóng băng làm cọc và tổng, kèm tooltip số đầy đủ. */
     private void renderWallet(WalletResponseDTO wallet) {
         double balance = wallet != null ? wallet.getBalance() : 0.0;
         double frozen = wallet != null ? wallet.getFrozenBalance() : 0.0;
@@ -223,6 +229,7 @@ public class WalletController {
         }
     }
 
+    /** Mỗi dòng lịch sử: thời gian, loại giao dịch, số tiền, tên phiên và mô tả. */
     private void renderTransactions(List<TransactionDTO> transactions, Map<String, String> auctionTitles) {
         transactionListView.getItems().clear();
         if (transactions == null || transactions.isEmpty()) {
@@ -249,6 +256,7 @@ public class WalletController {
         }
     }
 
+    /** Lấy tên phiên đã tra được; không có id hoặc chưa map được thì trả "Chưa rõ". */
     private String auctionTitleOf(TransactionDTO transaction, Map<String, String> auctionTitles) {
         if (transaction == null || transaction.getAuctionId() == null) {
             return "Chưa rõ";
@@ -270,6 +278,7 @@ public class WalletController {
         return " | " + description;
     }
 
+    /** Chuỗi rỗng hoặc null được thay bằng "Chưa rõ" để không hiện ô trống. */
     private String valueOrUnknown(String value) {
         return value != null && !value.isBlank() ? value : "Chưa rõ";
     }

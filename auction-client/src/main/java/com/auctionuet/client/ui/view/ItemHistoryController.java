@@ -36,6 +36,7 @@ public class ItemHistoryController {
     private final ItemClient itemClient = new ItemClient();
     private ItemDTO currentItem;
 
+    /** Gắn cách lấy dữ liệu cho từng cột của bảng lịch sử phiên. */
     @FXML
     public void initialize() {
         setupAuctionHistoryTable();
@@ -47,6 +48,7 @@ public class ItemHistoryController {
         loadAuctionHistory();
     }
 
+    /** Điền tên, chủ sở hữu, loại, tình trạng, mô tả, thông số và ảnh. */
     private void updateItemInfo(ItemDTO item) {
         if (item == null) {
             statusLabel.setText("Không tìm thấy vật phẩm.");
@@ -64,6 +66,7 @@ public class ItemHistoryController {
         ImageLoader.loadImage(productImageView, imagePlaceholderLabel, item.getImageUrl());
     }
 
+    /** Xin lịch sử phiên của vật phẩm hiện tại trên luồng nền. */
     private void loadAuctionHistory() {
         String token = ClientSession.getInstance().getToken();
         if (token == null || currentItem == null) {
@@ -82,6 +85,7 @@ public class ItemHistoryController {
         }).start();
     }
 
+    /** Cột tiêu đề, giá, trạng thái và thời điểm kết thúc lấy trực tiếp từ AuctionDTO. */
     private void setupAuctionHistoryTable() {
         titleCol.setCellValueFactory(cell -> new ReadOnlyStringWrapper(valueOrUnknown(cell.getValue().getTitle())));
         priceCol.setCellValueFactory(cell ->
@@ -91,6 +95,7 @@ public class ItemHistoryController {
         timeCol.setCellValueFactory(cell -> new ReadOnlyStringWrapper(formatTime(cell.getValue().getEndTime())));
     }
 
+    /** Sắp phiên theo thời gian rồi đổ vào bảng; rỗng thì báo chưa từng đấu giá. */
     private void renderAuctionHistory(List<AuctionDTO> history) {
         auctionHistoryTable.getItems().clear();
 
@@ -108,6 +113,7 @@ public class ItemHistoryController {
         statusLabel.setText("Có " + sortedHistory.size() + " phiên đấu giá gắn với vật phẩm này.");
     }
 
+    /** Mốc sắp xếp: ưu tiên giờ kết thúc, không có thì dùng giờ bắt đầu. */
     private LocalDateTime historyTime(AuctionDTO auction) {
         if (auction == null) {
             return null;
@@ -115,6 +121,7 @@ public class ItemHistoryController {
         return auction.getEndTime() != null ? auction.getEndTime() : auction.getStartTime();
     }
 
+    /** Nối extraFields thành một dòng "Tên: giá trị | Tên: giá trị". */
     private String formatExtraFields(Map<String, Object> extraFields) {
         if (extraFields == null || extraFields.isEmpty()) {
             return "--";
@@ -154,6 +161,7 @@ public class ItemHistoryController {
         return result.toString();
     }
 
+    /** Số nguyên (1.0) hiện không phần thập phân; giá trị khác giữ nguyên chuỗi. */
     private String formatExtraFieldValue(Object value) {
         if (value instanceof Number number) {
             double doubleValue = number.doubleValue();
@@ -164,22 +172,27 @@ public class ItemHistoryController {
         return value != null ? value.toString() : "";
     }
 
+    /** Định dạng thời điểm phiên; null thì "Chưa rõ". */
     private String formatTime(LocalDateTime time) {
         return time != null ? time.format(DISPLAY_TIME) : "Chưa rõ";
     }
 
+    /** Null thành chuỗi rỗng để label không hiện chữ "null". */
     private String nullToEmpty(String value) {
         return value != null ? value : "";
     }
 
+    /** Object null thành chuỗi rỗng, còn lại dùng toString. */
     private String valueOrEmpty(Object value) {
         return value != null ? value.toString() : "";
     }
 
+    /** Chuỗi trống thành "Chưa rõ". */
     private String valueOrUnknown(String value) {
         return value != null && !value.isBlank() ? value : "Chưa rõ";
     }
 
+    /** Lấy username của seller; thiếu user thì "Chưa rõ". */
     private String usernameOf(UserDTO user) {
         return user != null ? user.getUsername() : "Chưa rõ";
     }

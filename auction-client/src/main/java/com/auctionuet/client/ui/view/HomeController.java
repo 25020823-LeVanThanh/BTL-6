@@ -36,6 +36,7 @@ public class HomeController {
     @FXML private Label endingSoonPlaceholder;
     @FXML private Button btnExplore;
 
+    /** Gắn nút khám phá và tải thống kê ngay khi FXML được nạp. */
     @FXML
     public void initialize() {
         btnExplore.setOnAction(e -> openAuctionList());
@@ -93,6 +94,7 @@ public class HomeController {
         }).start();
     }
 
+    /** Vẽ tối đa 3 thẻ phiên sắp kết thúc, hoặc một dòng thông báo nếu danh sách rỗng. */
     private void renderEndingSoon(List<AuctionDTO> endingSoon) {
         endingSoonBox.getChildren().clear();
 
@@ -109,6 +111,7 @@ public class HomeController {
         }
     }
 
+    /** Thẻ nhỏ: tiêu đề, giá hiện tại, giờ kết thúc, seller và nút hành động theo vai trò. */
     private VBox createMiniCard(AuctionDTO auction) {
         VBox card = new VBox(10);
         card.setPrefWidth(220);
@@ -161,6 +164,10 @@ public class HomeController {
         return card;
     }
 
+    /**
+     * Bidder được đăng ký vào phiên đang RUNNING và có link xem chi tiết.
+     * Nút đăng ký bị khóa nếu phiên chưa chạy.
+     */
     private VBox createBidderActions(AuctionDTO auction) {
         VBox actions = new VBox(6);
 
@@ -186,6 +193,7 @@ public class HomeController {
         return actions;
     }
 
+    /** Mở BiddingView trong vùng nội dung Dashboard và truyền id phiên cần đặt giá. */
     private void openBiddingView(Node source, AuctionDTO auction) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/BiddingView.fxml"));
@@ -201,6 +209,7 @@ public class HomeController {
         }
     }
 
+    /** Mở AuctionDetailView và nạp chi tiết theo id phiên. */
     private void openAuctionDetail(Node source, AuctionDTO auction) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/AuctionDetailView.fxml"));
@@ -234,10 +243,12 @@ public class HomeController {
         }
     }
 
+    /** Định dạng mốc kết thúc theo dd/MM/yyyy HH:mm; thiếu dữ liệu thì ghi "Chưa rõ". */
     private String formatTime(LocalDateTime time) {
         return time != null ? time.format(DISPLAY_TIME) : "Chưa rõ";
     }
 
+    /** Nút "Khám phá" thay nội dung giữa bằng danh sách toàn bộ phiên. */
     private void openAuctionList() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/AuctionListView.fxml"));

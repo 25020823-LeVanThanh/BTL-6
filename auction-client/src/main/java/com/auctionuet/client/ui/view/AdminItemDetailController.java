@@ -43,11 +43,13 @@ public class AdminItemDetailController {
     private final AdminClient adminClient = new AdminClient();
     private ItemDTO currentItem;
 
+    /** Màn danh sách truyền vật phẩm vào sau khi FXML đã tạo controller. */
     public void setItem(ItemDTO item) {
         currentItem = item;
         renderItem();
     }
 
+    /** Quay lại bảng kiểm duyệt, thay đúng vùng nội dung giữa Dashboard. */
     @FXML
     private void handleBack() {
         try {
@@ -59,16 +61,19 @@ public class AdminItemDetailController {
         }
     }
 
+    /** Duyệt sản phẩm đang chờ. */
     @FXML
     private void handleApprove() {
         updateStatus(ItemApprovalStatus.APPROVED);
     }
 
+    /** Từ chối sản phẩm đang chờ. */
     @FXML
     private void handleReject() {
         updateStatus(ItemApprovalStatus.REJECTED);
     }
 
+    /** Đổ toàn bộ nhãn, badge trạng thái, nút hành động và ảnh. */
     private void renderItem() {
         if (currentItem == null) {
             statusMessage.setText("Không tìm thấy sản phẩm.");
@@ -90,10 +95,15 @@ public class AdminItemDetailController {
         loadImage();
     }
 
+    /** Tải ảnh sản phẩm; không có URL thì ImageLoader hiện placeholder. */
     private void loadImage() {
         ImageLoader.loadImage(productImageView, imagePlaceholderLabel, currentItem.getImageUrl());
     }
 
+    /**
+     * Gửi duyệt hoặc từ chối trên luồng nền.
+     * Chỉ chạy khi sản phẩm còn PENDING; trong lúc chờ thì khóa cụm nút.
+     */
     private void updateStatus(ItemApprovalStatus status) {
         if (currentItem == null || currentItem.getApprovalStatus() != ItemApprovalStatus.PENDING) {
             return;
@@ -121,6 +131,7 @@ public class AdminItemDetailController {
         }, "admin-item-approval-detail-update").start();
     }
 
+    /** Đổi chữ và class CSS của badge: chờ duyệt / đã duyệt / bị từ chối. */
     private void updateApprovalBadge(ItemApprovalStatus status) {
         approvalStatusLabel.getStyleClass().removeAll(
                 "status-badge-open", "status-badge-running", "status-badge-canceled");
@@ -140,12 +151,14 @@ public class AdminItemDetailController {
         }
     }
 
+    /** Giờ tạo sản phẩm theo dd/MM/yyyy HH:mm. */
     private String formatCreatedAt() {
         return currentItem.getCreatedAt() != null
                 ? currentItem.getCreatedAt().format(DATE_FORMAT)
                 : "Chưa rõ";
     }
 
+    /** Mỗi thông số phụ một dòng "Tên: giá trị". */
     private String formatExtraFields(Map<String, Object> extraFields) {
         if (extraFields == null || extraFields.isEmpty()) {
             return "Không có thông số bổ sung.";
@@ -175,6 +188,7 @@ public class AdminItemDetailController {
         return text.toString();
     }
 
+    /** Chuỗi trống dùng câu mặc định, ví dụ "Không có mô tả." */
     private String valueOrDefault(String value, String defaultValue) {
         return value != null && !value.isBlank() ? value : defaultValue;
     }

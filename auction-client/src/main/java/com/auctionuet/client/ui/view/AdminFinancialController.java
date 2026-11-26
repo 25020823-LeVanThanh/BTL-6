@@ -45,6 +45,7 @@ public class AdminFinancialController {
 
     private final AdminClient adminClient = new AdminClient();
 
+    /** Gắn cột, bộ lọc loại giao dịch và converter của combo user, rồi tải tổng quan. */
     @FXML
     public void initialize() {
         List<String> types = new ArrayList<>();
@@ -78,11 +79,13 @@ public class AdminFinancialController {
         loadDashboard();
     }
 
+    /** Lọc bảng theo loại giao dịch và user đang chọn, không tải lại ba số tổng. */
     @FXML
     private void handleFilter() {
         loadTransactions();
     }
 
+    /** Đưa bộ lọc về "tất cả" rồi tải lại bảng giao dịch. */
     @FXML
     private void handleReset() {
         typeFilter.setValue(ALL_TYPES);
@@ -92,11 +95,13 @@ public class AdminFinancialController {
         loadTransactions();
     }
 
+    /** Tải lại cả tổng quan, danh sách user và bảng giao dịch. */
     @FXML
     private void handleRefresh() {
         loadDashboard();
     }
 
+    /** Một lần gọi nền lấy summary, user và giao dịch rồi vẽ cả ba phần. */
     private void loadDashboard() {
         String token = ClientSession.getInstance().getToken();
         if (token == null) {
@@ -124,6 +129,7 @@ public class AdminFinancialController {
         }, "admin-financial-load").start();
     }
 
+    /** Chỉ gọi API danh sách giao dịch theo userId và loại đang chọn. */
     private void loadTransactions() {
         String token = ClientSession.getInstance().getToken();
         if (token == null) {
@@ -146,12 +152,14 @@ public class AdminFinancialController {
         }, "admin-financial-filter").start();
     }
 
+    /** Hiện tổng số dư khả dụng, đóng băng và doanh thu phạt của cả hệ thống. */
     private void renderSummary(FinancialSummaryDTO summary) {
         CurrencyFormatter.setMoneyText(availableBalanceLabel, summary.getAvailableBalanceTotal());
         CurrencyFormatter.setMoneyText(frozenBalanceLabel, summary.getFrozenBalanceTotal());
         CurrencyFormatter.setMoneyText(penaltyRevenueLabel, summary.getPenaltyRevenueTotal());
     }
 
+    /** Đổ combo user, luôn có mục "Tất cả" ở đầu và giữ lựa chọn cũ nếu còn. */
     private void populateUsers(List<AdminUserDTO> users, String selectedUserId) {
         List<UserFilterOption> options = new ArrayList<>();
         options.add(new UserFilterOption(null, "Tất cả người dùng"));
@@ -165,22 +173,26 @@ public class AdminFinancialController {
                 .orElse(options.get(0)));
     }
 
+    /** "Tất cả giao dịch" thành null để server không lọc theo loại. */
     private TransactionType selectedType() {
         String value = typeFilter.getValue();
         return value == null || ALL_TYPES.equals(value) ? null : TransactionType.valueOf(value);
     }
 
+    /** Id user đang lọc; mục "Tất cả" có id null. */
     private String selectedUserId() {
         UserFilterOption selected = userFilter.getValue();
         return selected != null ? selected.id : null;
     }
 
+    /** Giờ tạo giao dịch; thiếu thì dấu gạch. */
     private String formatTime(TransactionDTO transaction) {
         return transaction.getCreatedAt() != null
                 ? transaction.getCreatedAt().format(DISPLAY_TIME)
                 : "-";
     }
 
+    /** Chuỗi trống thành "-" cho ô bảng. */
     private String valueOrDash(String value) {
         return value != null && !value.isBlank() ? value : "-";
     }
