@@ -1,4 +1,3 @@
-
 /*  VAI TRÒ CỦA FILE:
 - Tìm và lọc ra các sản phẩm theo nhu cầu
 - Lọc sản phẩm theo tên, theo danh mục, theo khoảng giá
@@ -6,9 +5,12 @@
 
 package com.auctionuet.server.service.impl;
 
+import org.springframework.stereotype.Service;
+
 import com.auctionuet.server.model.Category;
 import com.auctionuet.server.model.Product;
 import com.auctionuet.server.service.ProductSearchService;
+import com.auctionuet.server.repository.ProductRepository;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -22,18 +24,18 @@ import java.util.List;
 5.  Đưa sản phẩm phù hợp vào danh sách kết quả.
  */
 
-
+@Service
 public class ProductSearchServiceImpl implements ProductSearchService {
-    // Sử dụng final để đảm bảo sau khi constructor gán danh sách, thuộc tính không được gán lại cho danh sách khác
-    private final List<Product> products;
+    // final giúp tham chiếu productRepository không bị gán lại
+    private final ProductRepository productRepository;
 
     // Constructor
-    public ProductSearchServiceImpl (List<Product> products) {
-        if (products == null) {
-            throw new IllegalArgumentException("Invalid product list");
+    public ProductSearchServiceImpl (ProductRepository productRepository) {
+        if (productRepository == null) {
+            throw new IllegalArgumentException("Invalid product repository");
         }
         else {
-            this.products = products;
+            this.productRepository = productRepository;
         }
     }
 
@@ -43,7 +45,9 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         if(keyword == null || keyword.isBlank()) {          // Nếu tên sản phẩm không hợp lệ, ném ra ngoại lệ
             throw new IllegalArgumentException("Invalid search keyword");
         }
+        List<Product> products = productRepository.findAll();
         List<Product> results = new ArrayList<>();          // Tạo danh sách chứa kết quả có kiểu dữ liệu Product
+
         for(int i = 0; i < products.size(); i++) {
             Product product = products.get(i);              // Khai báo biến tham chiếu product kiểu Product để tham chiếu đến products[i]
             if(product == null || product.getItem() == null || product.getItem().getName() == null) {
@@ -64,7 +68,10 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         if(category == null || category.getId() == null || category.getId().isBlank()) {
             throw new IllegalArgumentException("Invalid category");
         }
+
+        List<Product> products = productRepository.findAll();
         List<Product> results = new ArrayList<>();
+
         for(int i = 0; i < products.size(); i++) {
             Product product = products.get(i);
             if(product == null) {continue;}
@@ -102,6 +109,8 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         if(minPrice.compareTo(BigDecimal.ZERO) < 0 || maxPrice.compareTo(BigDecimal.ZERO) < 0){
             throw new IllegalArgumentException("Price must not be negative");
         }
+
+        List<Product> products = productRepository.findAll();
         List<Product> results = new ArrayList<>();
 
         for(int i = 0; i < products.size(); i++) {
