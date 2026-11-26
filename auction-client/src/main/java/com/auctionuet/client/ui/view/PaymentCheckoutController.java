@@ -53,12 +53,14 @@ public class PaymentCheckoutController {
     private Button btnConfirmCheckout;
     private Consumer<WalletResponseDTO> walletDepositSuccessCallback;
 
+    /** Khi popup đổi rộng thì xếp lại hai cột thông tin và QR. */
     @FXML
     public void initialize() {
         checkoutFlow.widthProperty().addListener((obs, oldWidth, newWidth) ->
                 syncCheckoutWidth(newWidth.doubleValue()));
     }
 
+    /** Nhận số tiền từ màn ví, tạo mã đối soát rồi vẽ form nạp. */
     public void setDepositData(double amount, Consumer<WalletResponseDTO> walletDepositSuccessCallback) {
         this.depositAmount = amount;
         this.walletDepositSuccessCallback = walletDepositSuccessCallback;
@@ -78,6 +80,7 @@ public class PaymentCheckoutController {
         return sb.toString();
     }
 
+    /** Dựng cột trái (thông tin) và cột phải (QR + nút xác nhận). */
     private void renderCheckout() {
         if (depositAmount <= 0) {
             return;
@@ -110,12 +113,14 @@ public class PaymentCheckoutController {
         applyRegionWidth(checkoutActionCard, rightWidth);
     }
 
+    /** Gán min, pref và max bằng nhau để FlowPane không tự kéo cột. */
     private void applyRegionWidth(Region region, double width) {
         region.setMinWidth(width);
         region.setPrefWidth(width);
         region.setMaxWidth(width);
     }
 
+    /** Tài khoản, nội dung chuyển khoản và số tiền cần nạp. */
     private VBox createDepositInfoCard() {
         VBox card = new VBox(12);
         card.getStyleClass().addAll("payment-info-card", "payment-checkout-column");
@@ -136,10 +141,12 @@ public class PaymentCheckoutController {
         return card;
     }
 
+    /** Một hàng nhãn bên trái, giá trị bên phải, không tooltip. */
     private HBox createInfoRow(String labelText, String valueText) {
         return createInfoRow(labelText, valueText, null);
     }
 
+    /** Hàng thông tin; tooltip dùng khi số tiền bị rút gọn trên nhãn. */
     private HBox createInfoRow(String labelText, String valueText, String tooltipText) {
         HBox row = new HBox(12);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -157,12 +164,14 @@ public class PaymentCheckoutController {
         return row;
     }
 
+    /** Hàng số tiền, thêm class CSS để nhấn mạnh tổng. */
     private HBox createAmountDueRow(String labelText, String valueText, String tooltipText) {
         HBox row = createInfoRow(labelText, valueText, tooltipText);
         row.getStyleClass().add("payment-total-row");
         return row;
     }
 
+    /** Đường kẻ ngang 1px ngăn phần thông tin và số tiền. */
     private Region createDivider() {
         Region divider = new Region();
         divider.getStyleClass().add("payment-divider");
@@ -171,6 +180,7 @@ public class PaymentCheckoutController {
         return divider;
     }
 
+    /** Cột phải: QR, thông báo, nút xác nhận đã chuyển và nút đóng popup. */
     private VBox createDepositActionCard() {
         VBox card = new VBox(12);
         card.setAlignment(Pos.TOP_CENTER);
@@ -195,6 +205,10 @@ public class PaymentCheckoutController {
         return card;
     }
 
+    /**
+     * Ghép URL ảnh VietQR: ngân hàng, số tài khoản, số tiền nguyên và nội dung chuyển khoản.
+     * Ảnh tải nền để không khóa luồng giao diện.
+     */
     private List<Node> createDepositQrContent() {
         Label title = new Label("Quét mã QR để nạp tiền");
         title.getStyleClass().add("payment-card-title");
@@ -253,6 +267,7 @@ public class PaymentCheckoutController {
         return List.of(title, qrHolder, amount, ref);
     }
 
+    /** Gọi API cộng tiền; thành công thì callback cập nhật ví rồi đóng popup. */
     private void confirmWalletDeposit() {
         String token = ClientSession.getInstance().getToken();
         btnConfirmCheckout.setDisable(true);
@@ -279,6 +294,7 @@ public class PaymentCheckoutController {
         }).start();
     }
 
+    /** Đóng Stage của popup nạp tiền. */
     private void closePopup() {
         if (checkoutFlow != null && checkoutFlow.getScene() != null
                 && checkoutFlow.getScene().getWindow() instanceof Stage stage) {
@@ -286,10 +302,12 @@ public class PaymentCheckoutController {
         }
     }
 
+    /** Username hiện trên phiếu nạp. */
     private String usernameOf(UserDTO user) {
         return user != null && user.getUsername() != null ? user.getUsername() : "Chưa rõ";
     }
 
+    /** Rút id dài còn 8 ký tự đầu để hiện gọn nếu cần. */
     private String shortId(String id) {
         if (id == null || id.isBlank()) {
             return "UNKNOWN";
@@ -297,6 +315,7 @@ public class PaymentCheckoutController {
         return id.length() <= 8 ? id : id.substring(0, 8);
     }
 
+    /** Nội dung CK = username + mã 5 ký tự, dùng để đối soát giao dịch. */
     private String depositReference() {
         UserDTO user = ClientSession.getInstance().getCurrentUser();
         String username = user != null && user.getUsername() != null ? user.getUsername() : "UNKNOWN";

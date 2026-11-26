@@ -36,6 +36,7 @@ public class AdminUsersController {
 
     private final AdminClient adminClient = new AdminClient();
 
+    /** Đổ bộ lọc, gắn cột bảng và nút Khóa/Mở khóa, rồi tải danh sách lần đầu. */
     @FXML
     public void initialize() {
         roleFilter.setItems(FXCollections.observableArrayList("Tất cả", "BIDDER", "SELLER", "ADMIN"));
@@ -78,11 +79,13 @@ public class AdminUsersController {
         refreshUsers();
     }
 
+    /** Áp dụng từ khóa và bộ lọc hiện tại rồi tải lại bảng. */
     @FXML
     private void handleSearch() {
         refreshUsers();
     }
 
+    /** Xóa ô tìm, đưa hai combo về "Tất cả" rồi tải lại toàn bộ tài khoản. */
     @FXML
     private void handleReset() {
         searchField.clear();
@@ -91,6 +94,7 @@ public class AdminUsersController {
         refreshUsers();
     }
 
+    /** Gọi API danh sách user trên luồng nền; "Tất cả" được đổi thành null trước khi gửi. */
     private void refreshUsers() {
         String token = ClientSession.getInstance().getToken();
         if (token == null) {
@@ -115,6 +119,7 @@ public class AdminUsersController {
         }, "admin-user-load").start();
     }
 
+    /** Đổi ACTIVE/BLOCKED của một user rồi tải lại bảng để nút khớp trạng thái mới. */
     private void updateStatus(AdminUserDTO user, AccountStatus status) {
         String token = ClientSession.getInstance().getToken();
         statusLabel.setText("Đang cập nhật...");
@@ -133,6 +138,7 @@ public class AdminUsersController {
         return value == null || "Tất cả".equals(value) ? null : UserRole.valueOf(value);
     }
 
+    /** "Tất cả" hoặc giá trị rỗng nghĩa là không lọc theo trạng thái tài khoản. */
     private AccountStatus parseStatus(String value) {
         return value == null || "Tất cả".equals(value) ? null : AccountStatus.valueOf(value);
     }

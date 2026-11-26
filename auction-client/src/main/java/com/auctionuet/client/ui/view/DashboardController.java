@@ -118,6 +118,7 @@ public class DashboardController {
         }
     }
 
+    /** Hiện "◎ username (ROLE)" trên sidebar; chưa có user thì hiện Guest. */
     private void renderUserHeader(UserDTO currentUser) {
         if (currentUser != null) {
             String name = currentUser.getUsername();
@@ -128,6 +129,12 @@ public class DashboardController {
         }
     }
 
+    /**
+     * Ẩn menu theo vai trò.
+     * Seller mới thấy tạo phiên; bidder mới thấy thanh toán; admin thấy menu quản trị
+     * và không thấy "vật phẩm của tôi" hay ví cá nhân.
+     * Đang buộc đổi mật khẩu thì chỉ còn trang hồ sơ.
+     */
     private void setupPermissions() {
         // Sử dụng hàm isSeller() siêu tiện lợi trong ClientSession
         boolean isSeller = ClientSession.getInstance().isSeller();
@@ -217,6 +224,7 @@ public class DashboardController {
         }
     }
 
+    /** Dọn màn hình đang mở, xóa token/user trong session rồi quay về màn đăng nhập. */
     private void handleLogout() {
         cleanupActiveContent();
         // Dọn dẹp session bằng hàm mới clearSession() thay vì setSession()
@@ -225,6 +233,7 @@ public class DashboardController {
         SceneManager.getInstance().switchScene("/fxml/MainView.fxml");
     }
 
+    /** Nếu trang hiện tại có timer hoặc push listener thì dừng chúng trước khi thay nội dung. */
     private void cleanupActiveContent() {
         if (activeContentLifecycle != null) {
             activeContentLifecycle.cleanup();
@@ -232,6 +241,7 @@ public class DashboardController {
         }
     }
 
+    /** Đổi Light/Dark, áp CSS lên scene hiện tại và đổi chữ nút T (tối) / S (sáng). */
     @FXML
     private void handleToggleTheme() {
         ThemeManager.getInstance().toggleTheme();

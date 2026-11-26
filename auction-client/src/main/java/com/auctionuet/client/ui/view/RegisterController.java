@@ -99,6 +99,7 @@ public class RegisterController {
         }).start();
     }
 
+    /** Đổi panel phải về form đăng nhập, giữ banner trái. */
     @FXML
     public void handleSwitchToLogin() {
         if (mainController != null) {
@@ -106,6 +107,7 @@ public class RegisterController {
         }
     }
 
+    /** Quay về màn chính (banner + panel đăng nhập). */
     @FXML
     public void handleBack() {
         SceneManager.getInstance().switchScene("/fxml/MainView.fxml");

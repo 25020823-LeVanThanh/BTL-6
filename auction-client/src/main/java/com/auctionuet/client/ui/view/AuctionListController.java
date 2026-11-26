@@ -44,6 +44,7 @@ public class AuctionListController {
     private double currentCardWidth = 300.0;
     private boolean myAuctionsOnly;
 
+    /** Lắng nghe ô tìm, hiện nút "phiên của tôi" nếu là seller, rồi tải danh sách. */
     @FXML
     public void initialize() {
         searchField.textProperty().addListener((obs, oldValue, newValue) -> applyFilters());
@@ -67,6 +68,7 @@ public class AuctionListController {
         Platform.runLater(() -> syncGridWidth(auctionScrollPane.getViewportBounds()));
     }
 
+    /** Khóa chiều ngang lưới bằng viewport và tính lại bề rộng từng thẻ. */
     private void syncGridWidth(Bounds viewportBounds) {
         if (viewportBounds == null || viewportBounds.getWidth() <= 0) {
             return;
@@ -92,12 +94,14 @@ public class AuctionListController {
         return Math.floor((availableWidth - ((columns - 1) * CARD_GAP) - 2) / columns);
     }
 
+    /** Ép min/pref/max của thẻ bằng nhau để FlowPane không kéo giãn lệch. */
     private void applyCardWidth(Region card) {
         card.setMinWidth(currentCardWidth);
         card.setPrefWidth(currentCardWidth);
         card.setMaxWidth(currentCardWidth);
     }
 
+    /** Tải mọi phiên trên luồng nền, gom về một phiên đại diện mỗi vật phẩm rồi lọc. */
     private void loadAuctionsFromServer() {
         String currentToken = ClientSession.getInstance().getToken();
         if (currentToken == null) return;
@@ -117,11 +121,13 @@ public class AuctionListController {
         }).start();
     }
 
+    /** Enter trên ô tìm cũng chạy cùng bộ lọc với listener text. */
     @FXML
     private void handleSearch() {
         applyFilters();
     }
 
+    /** Lọc theo seller hiện tại (nếu bật) và từ khóa tiêu đề / vật phẩm / seller. */
     private void applyFilters() {
         String keyword = searchField.getText() != null
                 ? searchField.getText().trim().toLowerCase(Locale.ROOT)
@@ -134,12 +140,14 @@ public class AuctionListController {
         renderGrid(filtered);
     }
 
+    /** Bật hoặc tắt chế độ chỉ xem phiên do chính seller này tạo. */
     private void toggleMyAuctionsFilter() {
         myAuctionsOnly = !myAuctionsOnly;
         updateMyAuctionsButtonStyle();
         applyFilters();
     }
 
+    /** Thêm class CSS active khi bộ lọc "phiên của tôi" đang bật. */
     private void updateMyAuctionsButtonStyle() {
         if (btnMyAuctions == null) {
             return;
@@ -150,6 +158,7 @@ public class AuctionListController {
         }
     }
 
+    /** Khớp không phân biệt hoa thường trên tiêu đề, tên vật phẩm hoặc username seller. */
     private boolean matchesKeyword(AuctionDTO auction, String keyword) {
         if (keyword.isEmpty()) {
             return true;
@@ -167,6 +176,7 @@ public class AuctionListController {
                 || seller.toLowerCase(Locale.ROOT).contains(keyword);
     }
 
+    /** Phiên thuộc seller đang đăng nhập. */
     private boolean matchesCurrentUser(AuctionDTO auction) {
         String currentUserId = currentUserId();
         if (auction == null || currentUserId == null || currentUserId.isBlank()) {
@@ -177,12 +187,14 @@ public class AuctionListController {
                 && currentUserId.equals(auction.getSeller().getId());
     }
 
+    /** Id user trong session; chưa đăng nhập thì null. */
     private String currentUserId() {
         return ClientSession.getInstance().getCurrentUser() != null
                 ? ClientSession.getInstance().getCurrentUser().getId()
                 : null;
     }
 
+    /** Xóa lưới cũ, dựng lại thẻ rồi căn lại bề rộng theo viewport hiện tại. */
     private void renderGrid(List<AuctionDTO> auctions) {
         auctionGrid.getChildren().clear();
         for (AuctionDTO item : auctions) {
@@ -191,6 +203,10 @@ public class AuctionListController {
         syncGridWidth(auctionScrollPane.getViewportBounds());
     }
 
+    /**
+     * Thẻ phiên: tiêu đề, giá, badge trạng thái, giờ và seller.
+     * Phiên OPEN thêm giờ bắt đầu. Bidder có nút đăng ký; vai trò khác chỉ xem chi tiết.
+     */
     private VBox createAuctionCard(AuctionDTO item) {
         VBox card = new VBox(12);
         card.getStyleClass().add("auction-card");
@@ -261,6 +277,7 @@ public class AuctionListController {
         return card;
     }
 
+    /** Nút vào phòng đặt giá (chỉ RUNNING) và link xem chi tiết. */
     private VBox createBidderActions(AuctionDTO item, AuctionStatus status) {
         VBox actions = new VBox(6);
 
@@ -287,6 +304,7 @@ public class AuctionListController {
         return actions;
     }
 
+    /** Thay vùng giữa Dashboard bằng BiddingView của phiên được chọn. */
     private void openBiddingView(Node source, AuctionDTO item) {
         try {
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/fxml/BiddingView.fxml"));
@@ -302,6 +320,7 @@ public class AuctionListController {
         }
     }
 
+    /** Thay vùng giữa Dashboard bằng chi tiết phiên. */
     private void openAuctionDetail(Node source, AuctionDTO item) {
         try {
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/fxml/AuctionDetailView.fxml"));
@@ -317,6 +336,10 @@ public class AuctionListController {
         }
     }
 
+    /**
+     * Layout mới: HBox (sidebar + thẻ chính), nội dung nằm ở StackPane con thứ hai.
+     * Layout cũ: BorderPane, nội dung là center.
+     */
     private void replaceContent(Node source, javafx.scene.Parent root) {
         javafx.scene.Parent currentRoot = source.getScene().getRoot();
         if (currentRoot instanceof javafx.scene.layout.HBox) {
@@ -332,10 +355,12 @@ public class AuctionListController {
         }
     }
 
+    /** dd/MM/yyyy HH:mm, hoặc "Chưa rõ" nếu server không gửi mốc thời gian. */
     private String formatTime(LocalDateTime time) {
         return time != null ? time.format(DISPLAY_TIME) : "Chưa rõ";
     }
 
+    /** Null thành "Chưa rõ". */
     private String valueOrUnknown(String value) {
         return value != null ? value : "Chưa rõ";
     }

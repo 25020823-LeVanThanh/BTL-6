@@ -60,6 +60,7 @@ public class ProfileController {
     @FXML private Label statReputationLabel;
     @FXML private Label statActiveLabel;
 
+    /** Điền tên, vai trò, avatar; admin ẩn ví; mật khẩu mặc định thì khóa form đổi mật khẩu. */
     @FXML
     public void initialize() {
         UserDTO currentUser = ClientSession.getInstance().getCurrentUser();
@@ -103,6 +104,7 @@ public class ProfileController {
         refreshProfileFromServer();
     }
 
+    /** Admin không có ví cá nhân trên hồ sơ. */
     private void hideAdminWallet() {
         balanceSummaryBox.setVisible(false);
         balanceSummaryBox.setManaged(false);
@@ -127,6 +129,7 @@ public class ProfileController {
         showProfileMessage("Bạn phải đổi mật khẩu mặc định trước khi sử dụng hệ thống.", false);
     }
 
+    /** Lấy số dư khả dụng và hiện trên nhãn, kèm tooltip số đầy đủ. */
     private void loadWalletBalance() {
         String token = ClientSession.getInstance().getToken();
         if (token == null) return;
@@ -143,6 +146,7 @@ public class ProfileController {
         }).start();
     }
 
+    /** Mở hoặc đóng khối sửa profile; mở thì chưa chọn đổi tên hay đổi mật khẩu. */
     @FXML
     private void handleToggleEditProfile() {
         boolean shouldShow = !editProfileBox.isVisible();
@@ -159,6 +163,7 @@ public class ProfileController {
         }
     }
 
+    /** Chỉ hiện ô đổi tên. */
     @FXML
     private void handleChooseUsernameEdit() {
         showUsernameEdit(true);
@@ -167,6 +172,7 @@ public class ProfileController {
         profileMessageLabel.setText("");
     }
 
+    /** Chỉ hiện ba ô mật khẩu. */
     @FXML
     private void handleChoosePasswordEdit() {
         showUsernameEdit(false);
@@ -176,6 +182,10 @@ public class ProfileController {
         profileMessageLabel.setText("");
     }
 
+    /**
+     * Gửi tên mới và/hoặc mật khẩu mới.
+     * Đổi mật khẩu bắt buộc thành công thì đánh dấu xong và tải lại Dashboard để mở menu.
+     */
     @FXML
     private void handleSaveProfile() {
         String token = ClientSession.getInstance().getToken();
@@ -250,6 +260,7 @@ public class ProfileController {
         }).start();
     }
 
+    /** Chuyển vùng giữa Dashboard sang màn ví để nạp tiền. */
     @FXML
     private void handleTopUp() {
         try {
@@ -327,6 +338,7 @@ public class ProfileController {
         }).start();
     }
 
+    /** Đồng bộ username/role từ server vào session, lỗi thì giữ dữ liệu đang có. */
     private void refreshProfileFromServer() {
         String token = ClientSession.getInstance().getToken();
         if (token == null) {
@@ -345,6 +357,7 @@ public class ProfileController {
         }).start();
     }
 
+    /** Cập nhật nhãn tên, vai trò, ô sửa tên và avatar sau khi profile đổi. */
     private void renderCurrentUser(UserDTO user) {
         if (user == null) {
             return;
@@ -355,29 +368,34 @@ public class ProfileController {
         loadUserAvatar(user.getUsername());
     }
 
+    /** Xóa ba ô mật khẩu sau khi lưu hoặc khi đổi sang sửa tên. */
     private void clearPasswordFields() {
         currentPasswordField.clear();
         newPasswordField.clear();
         confirmPasswordField.clear();
     }
 
+    /** Thông báo xanh khi thành công, đỏ khi lỗi. */
     private void showProfileMessage(String message, boolean error) {
         profileMessageLabel.setText(message);
         profileMessageLabel.setTextFill(javafx.scene.paint.Color.web(error ? "#ff4757" : "#22c55e"));
     }
 
+    /** Hiện/ẩn ô username và tô nút lựa chọn tương ứng. */
     private void showUsernameEdit(boolean visible) {
         usernameEditBox.setVisible(visible);
         usernameEditBox.setManaged(visible);
         setChoiceButtonActive(btnChooseUsernameEdit, visible);
     }
 
+    /** Hiện/ẩn khối mật khẩu và tô nút lựa chọn tương ứng. */
     private void showPasswordEdit(boolean visible) {
         passwordEditBox.setVisible(visible);
         passwordEditBox.setManaged(visible);
         setChoiceButtonActive(btnChoosePasswordEdit, visible);
     }
 
+    /** Nút đang chọn có nền teal, nút kia chỉ viền. */
     private void setChoiceButtonActive(Button button, boolean active) {
         String color = active ? "#4ecdc4" : "transparent";
         String textColor = active ? "#1a1a2e" : "#4ecdc4";
@@ -386,10 +404,12 @@ public class ProfileController {
                 + " -fx-text-fill: " + textColor + "; -fx-padding: 8; -fx-font-weight: bold;");
     }
 
+    /** Null hoặc toàn khoảng trắng. */
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
     }
 
+    /** Đếm phiên bidder đã tham gia, kể cả phiên chỉ biết qua lịch sử bid. */
     private long countParticipatedAuctions(String token, String userId, List<AuctionDTO> auctions) {
         BidClient bidClient = new BidClient();
         return auctions.stream()
@@ -397,6 +417,7 @@ public class ProfileController {
                 .count();
     }
 
+    /** Đã cọc/thắng/đang dẫn thì không cần gọi lịch sử bid; không thì quét danh sách bid. */
     private boolean hasParticipation(
             String token, String userId, AuctionDTO auction, BidClient bidClient) {
         if (isCurrentUserKnownParticipant(auction, userId)) {
@@ -412,14 +433,17 @@ public class ProfileController {
         }
     }
 
+    /** Tiêu đề ô thống kê thứ hai: seller là đã bán, còn lại là đã tham gia. */
     private String getSecondStatTitle(UserDTO user) {
         return isSeller(user) ? "Sản phẩm đã bán" : "Phiên đã tham gia";
     }
 
+    /** True khi role của user là SELLER. */
     private boolean isSeller(UserDTO user) {
         return user != null && user.getRole() == UserRole.SELLER;
     }
 
+    /** User đã cọc, là người thắng, hoặc đang giữ giá cao nhất. */
     private boolean isCurrentUserKnownParticipant(AuctionDTO auction, String userId) {
         boolean isWinner = auction.getWinner() != null && userId.equals(auction.getWinner().getId());
         boolean isHighestBidder = auction.getCurrentHighestBid() != null
@@ -428,11 +452,16 @@ public class ProfileController {
         return auction.isCurrentUserDeposited() || isWinner || isHighestBidder;
     }
 
+    /** Thắng khi phiên đang chờ thanh toán hoặc đã trả. */
     private boolean isWonAuction(AuctionDTO auction) {
         return auction.getStatus() == AuctionStatus.WAITING_PAYMENT
                 || auction.getStatus() == AuctionStatus.PAID;
     }
 
+    /**
+     * Phiên còn "đang hoạt động" với user:
+     * seller có phiên OPEN/RUNNING/WAITING_PAYMENT, winner đang chờ trả, hoặc bidder đã cọc ở phiên RUNNING.
+     */
     private boolean isActiveForCurrentUser(AuctionDTO auction, String userId) {
         AuctionStatus status = auction.getStatus();
         boolean isSeller = auction.getSeller() != null && userId.equals(auction.getSeller().getId());
@@ -446,18 +475,21 @@ public class ProfileController {
                 || isRunningBidder;
     }
 
+    /** Phiên seller chưa kết thúc hẳn: sắp mở, đang chạy, hoặc chờ người thắng trả tiền. */
     private boolean isBlockingSellerStatus(AuctionStatus status) {
         return status == AuctionStatus.OPEN
                 || status == AuctionStatus.RUNNING
                 || status == AuctionStatus.WAITING_PAYMENT;
     }
 
+    /** 0–1 giao dịch = 1 sao, mỗi 2 giao dịch thêm 1 sao, tối đa 5. */
     private String calculateReputation(int totalTransactions) {
         // 0–1 giao dịch: 1 sao, cứ thêm 2 giao dịch thì thêm 1 sao, tối đa 5.
         int stars = Math.min(5, Math.max(1, (totalTransactions / 2) + 1));
         return "★".repeat(stars) + "☆".repeat(5 - stars);
     }
 
+    /** Đưa bốn ô thống kê về 0 và một sao khi chưa tải được. */
     private void setStatsDefault() {
         statWonLabel.setText("0");
         statSoldLabel.setText("0");

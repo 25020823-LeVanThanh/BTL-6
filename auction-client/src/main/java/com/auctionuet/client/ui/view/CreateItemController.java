@@ -56,6 +56,7 @@ public class CreateItemController {
         this.successCallback = successCallback;
     }
 
+    /** Điền loại sản phẩm, tình trạng, đổi form phụ theo loại và xem trước ảnh khi URL đổi. */
     @FXML
     public void initialize() {
         for (ItemType type : ItemType.values()) {
@@ -92,6 +93,10 @@ public class CreateItemController {
         }
     }
 
+    /**
+     * Kiểm tra form, gom thông số phụ rồi gọi API tạo vật phẩm trên luồng nền.
+     * Thành công thì xóa form và gọi callback để màn "vật phẩm của tôi" tải lại.
+     */
     @FXML
     public void handleSubmit() {
         String typeValue = typeComboBox.getValue();
@@ -188,6 +193,7 @@ public class CreateItemController {
         return extraFields;
     }
 
+    /** Hiện lỗi màu đỏ trên nhãn trạng thái, chưa gửi request. */
     private void showError(String msg) {
         statusLabel.setText("Lỗi: " + msg);
         statusLabel.setStyle("-fx-text-fill: #e94560;");
@@ -232,6 +238,7 @@ public class CreateItemController {
         }, "image-upload-thread").start();
     }
 
+    /** URL trống thì ẩn khung preview; có link thì tải ảnh bất đồng bộ qua ImageLoader. */
     private void updateImagePreview(String url) {
         if (url == null || url.isBlank()) {
             previewContainer.setVisible(false);

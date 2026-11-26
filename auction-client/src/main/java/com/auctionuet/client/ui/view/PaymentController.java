@@ -52,6 +52,7 @@ public class PaymentController {
     private PaymentFilter currentFilter = PaymentFilter.ALL;
     private double currentCardWidth = 260.0;
 
+    /** Gắn bộ lọc, căn lưới theo viewport rồi tải dữ liệu thanh toán. */
     @FXML
     public void initialize() {
         setupFilterButtons();
@@ -59,12 +60,14 @@ public class PaymentController {
         loadPaymentData();
     }
 
+    /** TilePane không tự co đều khi cửa sổ đổi rộng, nên nghe viewport. */
     private void setupStableGridWidth() {
         paymentScrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) ->
                 syncGridWidth(newBounds));
         Platform.runLater(() -> syncGridWidth(paymentScrollPane.getViewportBounds()));
     }
 
+    /** Khóa lưới theo chiều ngang viewport và chia tối đa 4 cột. */
     private void syncGridWidth(Bounds viewportBounds) {
         if (viewportBounds == null || viewportBounds.getWidth() <= 0) {
             return;
@@ -87,17 +90,20 @@ public class PaymentController {
         });
     }
 
+    /** Bề rộng một thẻ sau khi trừ khe hở giữa các cột. */
     private double calculateCardWidth(double availableWidth) {
         double width = Math.floor((availableWidth - ((MAX_CARD_COLUMNS - 1) * CARD_GAP) - 2) / MAX_CARD_COLUMNS);
         return Math.max(1, width);
     }
 
+    /** Ép min/pref/max của thẻ bằng nhau. */
     private void applyCardWidth(Region card) {
         card.setMinWidth(currentCardWidth);
         card.setPrefWidth(currentCardWidth);
         card.setMaxWidth(currentCardWidth);
     }
 
+    /** Ba nút: tất cả, chờ thanh toán, đã thanh toán. */
     private void setupFilterButtons() {
         btnAllPayments.setOnAction(e -> selectFilter(PaymentFilter.ALL));
         btnPendingPayments.setOnAction(e -> selectFilter(PaymentFilter.PENDING));
@@ -105,18 +111,21 @@ public class PaymentController {
         updateFilterButtonStyles();
     }
 
+    /** Đổi bộ lọc đang chọn và vẽ lại lưới, không gọi server. */
     private void selectFilter(PaymentFilter filter) {
         currentFilter = filter;
         updateFilterButtonStyles();
         renderPayments();
     }
 
+    /** Chỉ nút khớp bộ lọc hiện tại mang class active. */
     private void updateFilterButtonStyles() {
         updateFilterButtonStyle(btnAllPayments, currentFilter == PaymentFilter.ALL);
         updateFilterButtonStyle(btnPendingPayments, currentFilter == PaymentFilter.PENDING);
         updateFilterButtonStyle(btnPaidPayments, currentFilter == PaymentFilter.PAID);
     }
 
+    /** Thêm hoặc gỡ class CSS active của một nút lọc. */
     private void updateFilterButtonStyle(Button button, boolean active) {
         if (button == null) {
             return;
@@ -127,6 +136,7 @@ public class PaymentController {
         }
     }
 
+    /** Tải chờ trả, đã trả 30 ngày và quá hạn 30 ngày rồi sắp xếp từng nhóm. */
     private void loadPaymentData() {
         String token = ClientSession.getInstance().getToken();
         if (token == null) {
@@ -152,6 +162,7 @@ public class PaymentController {
         }).start();
     }
 
+    /** Phiên PAID mà user là người thắng, thanh toán trong 30 ngày gần nhất. */
     private List<AuctionDTO> loadRecentPaidPayments(List<AuctionDTO> auctions) {
         String currentUserId = currentUserId();
         if (currentUserId == null || currentUserId.isBlank()) {
@@ -167,6 +178,7 @@ public class PaymentController {
                 .toList();
     }
 
+    /** Phiên tự hủy vì quá hạn trả của chính user, trong 30 ngày gần nhất. */
     private List<AuctionDTO> loadRecentExpiredPayments(List<AuctionDTO> auctions) {
         String currentUserId = currentUserId();
         if (currentUserId == null || currentUserId.isBlank()) {
@@ -193,11 +205,13 @@ public class PaymentController {
                 && currentUserId.equals(auction.getWinner().getId());
     }
 
+    /** Id user đang đăng nhập. */
     private String currentUserId() {
         UserDTO currentUser = ClientSession.getInstance().getCurrentUser();
         return currentUser != null ? currentUser.getId() : null;
     }
 
+    /** Chờ trả: hạn gần nhất lên trước. */
     private List<AuctionDTO> sortedPendingPayments(List<AuctionDTO> auctions) {
         if (auctions == null) {
             return List.of();
@@ -209,6 +223,7 @@ public class PaymentController {
                 .toList();
     }
 
+    /** Đã trả: mới nhất lên trước. */
     private List<AuctionDTO> sortedPaidPayments(List<AuctionDTO> auctions) {
         if (auctions == null) {
             return List.of();
@@ -220,6 +235,7 @@ public class PaymentController {
                 .toList();
     }
 
+    /** Quá hạn: hạn mới nhất lên trước. */
     private List<AuctionDTO> sortedExpiredPayments(List<AuctionDTO> auctions) {
         if (auctions == null) {
             return List.of();
@@ -231,6 +247,7 @@ public class PaymentController {
                 .toList();
     }
 
+    /** Vẽ thẻ theo bộ lọc; rỗng thì hiện câu tương ứng. */
     private void renderPayments() {
         List<AuctionDTO> auctions = visiblePayments();
         paymentGrid.getChildren().clear();
@@ -247,6 +264,7 @@ public class PaymentController {
         syncGridWidth(paymentScrollPane.getViewportBounds());
     }
 
+    /** ALL gộp cả ba nhóm; PENDING và PAID chỉ lấy nhóm tương ứng. */
     private List<AuctionDTO> visiblePayments() {
         if (currentFilter == PaymentFilter.PENDING) {
             return pendingPayments;
@@ -262,6 +280,7 @@ public class PaymentController {
         return all;
     }
 
+    /** Câu khi không có phiên nào trong bộ lọc đang chọn. */
     private String emptyMessage() {
         return switch (currentFilter) {
             case ALL -> "Không có phiên cần thanh toán, đã thanh toán hoặc quá hạn trong 30 ngày.";
@@ -270,6 +289,7 @@ public class PaymentController {
         };
     }
 
+    /** Câu đếm số phiên đang hiện. */
     private String statusMessage(int count) {
         return switch (currentFilter) {
             case ALL -> "Có " + count + " phiên trong danh sách thanh toán.";
@@ -278,6 +298,10 @@ public class PaymentController {
         };
     }
 
+    /**
+     * Thẻ thanh toán: giá thắng, cọc, phần phải trả thêm và hạn.
+     * WAITING_PAYMENT mới có nút trừ ví; đã trả hoặc quá hạn chỉ mở chi tiết.
+     */
     private VBox createPaymentCard(AuctionDTO auction) {
         VBox card = new VBox(12);
         card.getStyleClass().add("auction-card");
@@ -337,6 +361,7 @@ public class PaymentController {
         return card;
     }
 
+    /** Hỏi xác nhận rồi trừ phần còn lại (giá thắng trừ cọc) từ ví. */
     private void payAuctionFromWallet(Button source, AuctionDTO auction) {
         String token = ClientSession.getInstance().getToken();
         if (token == null) {
@@ -381,6 +406,7 @@ public class PaymentController {
         }).start();
     }
 
+    /** Mở chi tiết phiên trong vùng nội dung Dashboard. */
     private void openAuctionDetail(Button source, String auctionId) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/AuctionDetailView.fxml"));
@@ -400,14 +426,17 @@ public class PaymentController {
         }
     }
 
+    /** dd/MM/yyyy HH:mm hoặc "Chưa rõ". */
     private String formatTime(LocalDateTime time) {
         return time != null ? time.format(DISPLAY_TIME) : "Chưa rõ";
     }
 
+    /** Hạn chót phải trả tiền. */
     private LocalDateTime deadlineTimeOf(AuctionDTO auction) {
         return auction != null ? auction.getPaymentDeadlineAt() : null;
     }
 
+    /** Giờ đã trả; thiếu paidAt thì dùng giờ kết thúc phiên. */
     private LocalDateTime paidTimeOf(AuctionDTO auction) {
         if (auction == null) {
             return null;
@@ -415,6 +444,7 @@ public class PaymentController {
         return auction.getPaidAt() != null ? auction.getPaidAt() : auction.getEndTime();
     }
 
+    /** Mốc quá hạn: hạn thanh toán, không có thì giờ kết thúc. */
     private LocalDateTime expiredTimeOf(AuctionDTO auction) {
         if (auction == null) {
             return null;
@@ -422,6 +452,7 @@ public class PaymentController {
         return auction.getPaymentDeadlineAt() != null ? auction.getPaymentDeadlineAt() : auction.getEndTime();
     }
 
+    /** Ba chế độ lọc của màn thanh toán. */
     private enum PaymentFilter {
         ALL,
         PENDING,
