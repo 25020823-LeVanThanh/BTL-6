@@ -16,7 +16,7 @@ public class Product {
     - Với tiền tệ, em ưu tiên BigDecimal để tránh sai số biểu diễn thập phân và kiểm soát quy tắc làm tròn.
      */
 
-    // // Constructor tạo sản phẩm mới và tự sinh ID bằng UUID
+    // Constructor tạo sản phẩm mới và tự sinh ID bằng UUID
     public Product(Item item, Category category, Seller seller, ProductStatus status, BigDecimal startingPrice) {
         this.id = UUID.randomUUID().toString();
         setItem(item);
@@ -29,6 +29,14 @@ public class Product {
             setStatus(status);
         }
         setStartingPrice(startingPrice);
+    }
+
+    // Gán ID cho sản phẩm, phục vụ việc khôi phục dữ liệu đã lưu
+    public void setId(String id) {
+        if (id == null || id.isBlank()) {
+            throw new IllegalArgumentException("Invalid product ID");
+        }
+        this.id = id;
     }
 
     // Viết các hàm setter
