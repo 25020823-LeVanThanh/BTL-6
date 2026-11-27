@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Optional;// tác dụng chính là kiểm tra null tránh sập chương trình
 
 public interface AuctionService {
-    Auction create(Auction auction);//tạo phiên (status PENDING)
-    void start(Auction auction);// PENDING → RUNNING + bidService.registerLive
+    Auction create(Auction auction);//tạo phiên (status OPEN)
+    void start(Auction auction);// OPEN → RUNNING + bidService.registerLive
     void finish(Auction auction);// RUNNING → FINISHED, chọn winner, unregisterLive
     void cancel(Auction auction);// hủy + unregister nếu đang live
     Optional<Auction> findById(String auctionId);

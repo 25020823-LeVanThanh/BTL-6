@@ -13,7 +13,7 @@ public class Auction{
     private double depositAmount;//Tiền cọc bắt buộc khi vào phiên
     private String currentLeaderId;//Ai đang dẫn đầu
     private String winnerId;//Ai thắng khi đóng(đang chạy =null)
-    private String status;//PENDING / RUNNING / FINISHED / PAID / CANCELED
+    private String status;//OPEN / RUNNING / FINISHED / PAID / CANCELED
     private LocalDateTime startTime;// mở
     private LocalDateTime endTime;//đóng
     /*
