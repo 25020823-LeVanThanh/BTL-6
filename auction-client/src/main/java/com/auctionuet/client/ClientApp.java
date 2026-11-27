@@ -6,10 +6,11 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 
 public class ClientApp extends Application {
+    public static final String APP_NAME = "AuctionUET";
 
     @Override
     public void start(Stage stage) {
-        stage.setTitle("AuctionUET");
+        stage.setTitle(APP_NAME);
         ThemeManager.getInstance().setTheme(ThemeManager.Theme.DARK);
         SceneManager.getInstance().init(stage);
         SceneManager.getInstance().switchScene("/fxml/MainView.fxml");

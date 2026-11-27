@@ -15,7 +15,7 @@
     <name>auction-client</name>
 
     <properties>
-        <javafx.version>21</javafx.version>
+        <javafx.version>21.0.13</javafx.version>
     </properties>
 
     <dependencies>
@@ -50,6 +50,12 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+            </plugin>
+
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
