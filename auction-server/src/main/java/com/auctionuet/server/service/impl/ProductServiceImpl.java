@@ -52,9 +52,7 @@ public class ProductServiceImpl implements ProductService {
         if (product.getSeller() == null) {
             throw new IllegalArgumentException("Invalid seller");
         }
-        if (product.getStatus() == null) {
-            throw new IllegalArgumentException("Invalid status");
-        }
+        product.setStatus(ProductStatus.PENDING);
         return productRepository.save(product);
     }
 
