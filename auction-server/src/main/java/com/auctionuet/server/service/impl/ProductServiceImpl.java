@@ -8,6 +8,8 @@
 
 package com.auctionuet.server.service.impl;
 
+import org.springframework.stereotype.Service;
+
 import com.auctionuet.server.model.Product;
 import com.auctionuet.server.service.ProductService;
 import com.auctionuet.server.repository.ProductRepository;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+@Service
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
 
@@ -49,9 +52,7 @@ public class ProductServiceImpl implements ProductService {
         if (product.getSeller() == null) {
             throw new IllegalArgumentException("Invalid seller");
         }
-        if (product.getStatus() == null) {
-            throw new IllegalArgumentException("Invalid status");
-        }
+        product.setStatus(ProductStatus.PENDING);
         return productRepository.save(product);
     }
 

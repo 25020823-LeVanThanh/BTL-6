@@ -10,6 +10,8 @@
 
 package com.auctionuet.server.service.impl;
 
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +19,7 @@ import com.auctionuet.server.model.Category;
 import com.auctionuet.server.service.CategoryService;
 import com.auctionuet.server.repository.CategoryRepository;
 
+@Service
 public class CategoryServiceImpl implements CategoryService {
     // Repository phụ trách truy cập và lưu trữ dữ liệu danh mục
     private final CategoryRepository categoryRepository;
