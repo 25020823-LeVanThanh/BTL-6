@@ -1,7 +1,7 @@
 //đồng hồ hệ thống cho phiên đấu giá: tự mở/đóng theo thời gian, không cần người bấm tay.
 /*
 Mỗi X giây:
-  PENDING + now >= startTime  → auctionService.start(a)
+  OPEN + now >= startTime  → auctionService.start(a)
   RUNNING + now >= endTime → auctionService.finish(a)
 */
 
@@ -33,7 +33,7 @@ public class AuctionTimerTask {
         }
     }
     private void tryStart(Auction a, LocalDateTime now){
-        if(!"PENDING".equals(a.getStatus())) return;
+        if(!"OPEN".equals(a.getStatus())) return;
         if(a.getStartTime()==null || now.isBefore(a.getStartTime())) return;
         try{
             auctionService.start(a);

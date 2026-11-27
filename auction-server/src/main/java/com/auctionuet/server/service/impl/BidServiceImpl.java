@@ -8,6 +8,7 @@ import com.auctionuet.server.model.LiveAuction;
 import com.auctionuet.server.service.AuctionService;
 import com.auctionuet.server.service.BidService;
 import com.auctionuet.server.service.WalletService;
+import com.auctionuet.server.event.BidEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.context.annotation.Lazy;
 
@@ -23,9 +24,12 @@ public class BidServiceImpl implements BidService {
     private final Object lock=new Object();
     private final WalletService walletService;
     private final AuctionService auctionService;
-    public BidServiceImpl(WalletService walletService, @Lazy AuctionService auctionService) {
+    private final BidEventPublisher publisher;
+
+    public BidServiceImpl(WalletService walletService, @Lazy AuctionService auctionService,BidEventPublisher publisher) {
         this.walletService = walletService;
         this.auctionService = auctionService;
+        this.publisher=publisher;
     }
 
     @Override
@@ -40,6 +44,7 @@ public class BidServiceImpl implements BidService {
             bid = acceptBid(auction, bidderId, amount);
         }
         applyAntiSniping(auction);// bỏ ra ngoài tránh tình trạng deadlock
+        publisher.publishBidPlaced(bid);//Observer
         return bid;
     }
     //Thực hiện nghiệp vụ phong tỏa tiền cọc và xử lý các tình huống ngoại lệ từ ví

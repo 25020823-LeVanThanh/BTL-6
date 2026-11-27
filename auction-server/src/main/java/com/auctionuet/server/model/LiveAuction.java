@@ -14,7 +14,7 @@ public class LiveAuction extends Auction {
         this.bidHistory = new ArrayList<>();
         this.totalBids = 0;
     }
-    public LiveAuction(Auction auction) {// khi phiên chuyển PENDING → RUNNING, bọc Auction thành LiveAuction
+    public LiveAuction(Auction auction) {// khi phiên chuyển OPEN → RUNNING, bọc Auction thành LiveAuction
         super(auction.getId(),
                 auction.getProductId(),
                 auction.getSellerId(),
