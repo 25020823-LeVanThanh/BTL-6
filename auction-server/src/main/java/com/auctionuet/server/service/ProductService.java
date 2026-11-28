@@ -16,7 +16,7 @@ public interface ProductService {       // Lớp triển khai ProductService ph�
      */
     Product createProduct(Product product);             // Phương thức giúp tạo sản phẩm mới
     Product getProductById(String id);                  // Phương thức giúp tìm 1 sản phẩm đã có
-    Product updateProduct(String id, Product product);  // Phương thức giúp sửa thông tin của 1 sản phẩm đã có sẵn
+    Product updateProduct(String id, Product product, String currentUserId);  // Phương thức giúp sửa thông tin của 1 sản phẩm đã có sẵn
     void deleteProduct(String id);                      // Phương thức giúp xóa sản phẩm đã có, sử dụng void do ta không cần trả về giá trị nào
 
     List<Product> getAllProducts();                     // Phương thức giúp lấy danh sách các sản phẩm, trả về các phần tử kiểu Product
