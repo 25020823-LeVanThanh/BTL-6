@@ -1,8 +1,10 @@
 package com.auctionuet.server.model;
+
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public class Product {
-    private Long id;
+    private String id;
     private Item item;
     private Category category;
     private Seller seller;
@@ -14,13 +16,27 @@ public class Product {
     - Với tiền tệ, em ưu tiên BigDecimal để tránh sai số biểu diễn thập phân và kiểm soát quy tắc làm tròn.
      */
 
-    // Constructor (tạm thời chưa đưa ID vào vì ID có thể được cấp khi bài đăng được lưu vào hệ thống)
+    // Constructor tạo sản phẩm mới và tự sinh ID bằng UUID
     public Product(Item item, Category category, Seller seller, ProductStatus status, BigDecimal startingPrice) {
+        this.id = UUID.randomUUID().toString();
         setItem(item);
         setCategory(category);
         setSeller(seller);
-        setStatus(status);
+        if(status == null) {
+            setStatus(ProductStatus.PENDING);
+        }
+        else {
+            setStatus(status);
+        }
         setStartingPrice(startingPrice);
+    }
+
+    // Gán ID cho sản phẩm, phục vụ việc khôi phục dữ liệu đã lưu
+    public void setId(String id) {
+        if (id == null || id.isBlank()) {
+            throw new IllegalArgumentException("Invalid product ID");
+        }
+        this.id = id;
     }
 
     // Viết các hàm setter
@@ -78,7 +94,7 @@ public class Product {
     public Item getItem() {
         return item;
     }
-    public Long getId() {
+    public String getId() {
         return id;
     }
     public Category getCategory() {

@@ -8,6 +8,7 @@ Mỗi X giây:
 package com.auctionuet.server.scheduler;
 
 import com.auctionuet.server.model.Auction;
+import com.auctionuet.server.model.LiveAuction;
 import com.auctionuet.server.service.AuctionService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -42,7 +43,9 @@ public class AuctionTimerTask {
     }
     private void tryFinish(Auction a,LocalDateTime now){
         if(!"RUNNING".equals(a.getStatus())) return;
-        if(a.getEndTime()==null || now.isBefore(a.getEndTime())) return;
+        LocalDateTime end=auctionService.getLive(a.getId()).map(LiveAuction::getEndTime).orElse(a.getEndTime());
+
+        if(end==null || now.isBefore(end)) return;
         try{
             auctionService.finish(a);
         }catch (RuntimeException e){

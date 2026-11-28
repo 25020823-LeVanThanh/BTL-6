@@ -7,28 +7,31 @@ import com.auctionuet.server.model.LiveAuction;
 import com.auctionuet.server.service.AuctionService;
 import com.auctionuet.server.service.BidService;
 import com.auctionuet.server.service.WalletService;
+import com.auctionuet.server.manager.AuctionManager;
+import com.auctionuet.server.event.BidEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+
 
 @Service //thêm annotation @Service lên các class *Impl đã có, để Spring tạo bean và Timer chạy được.
 
 public class AuctionServiceImpl implements AuctionService {
-    private final Map<String, Auction> store=new ConcurrentHashMap<>();
-    private final Map<String, LiveAuction> liveMap=new ConcurrentHashMap<>();
+    private final AuctionManager manager = AuctionManager.getInstance();
     private final BidService  bidService;
     private final WalletService walletService;
-    private final Object lock=new Object();
-    public  AuctionServiceImpl(BidService bidService,WalletService walletService){
+    private final BidEventPublisher publisher;
+
+    public  AuctionServiceImpl(BidService bidService,WalletService walletService,BidEventPublisher publisher){
         this.bidService=bidService;
         this.walletService= walletService;
+        this.publisher=publisher;
     }
 
     @Override
@@ -41,25 +44,29 @@ public class AuctionServiceImpl implements AuctionService {
         auction.setCurrentPrice(auction.getStartingPrice());
         auction.setCurrentLeaderId(null);
         auction.setWinnerId(null);
-        if (store.containsKey(auction.getId())) {
+        if (manager.getStore().containsKey(auction.getId())) {
             throw new IllegalArgumentException("auctionId đã tồn tại: " + auction.getId());
         }
-        store.put(auction.getId(),auction);
+        manager.getStore().put(auction.getId(),auction);
         return auction;
     }
     private void validateCreate(Auction auction){
         if(auction==null) throw new IllegalArgumentException("auction không tồn tại");
         if(auction.getStartingPrice()<=0) throw new IllegalArgumentException("giá khởi điểm của phiên(auction) đang nhỏ hơn hoặc bằng 0");
         if(auction.getBidIncrement()<=0) throw new IllegalArgumentException("bước giá đang nhỏ hơn hoặc bằng 0");
+        if(auction.getDepositAmount()<=0) throw new IllegalArgumentException("depositAmount phải lớn hơn 0");
         if(auction.getStartTime()==null|| auction.getEndTime()==null)
             throw new IllegalArgumentException("Start/End time không hợp lệ");
         if(!auction.getStartTime().isBefore(auction.getEndTime()))
             throw new IllegalArgumentException("Start time phải trước End Time");
+        if(auction.getAntiSnipingWindowSeconds()<0 || auction.getAntiSnipingExtensionSeconds()<0){
+            throw new IllegalArgumentException("anti-sniping không được âm");
+        }
     }
     @Override
     public void start(Auction auction){
         requireAuctionArg(auction);
-        synchronized (lock) {
+        synchronized (manager.getLock()) {
             Auction stored= requireStore(auction.getId());
             if(!"OPEN".equals(stored.getStatus())){
                 throw new IllegalStateException("chỉ Start được phiên đang OPEN");
@@ -67,19 +74,19 @@ public class AuctionServiceImpl implements AuctionService {
             stored.setStatus("RUNNING");
             LiveAuction live=new LiveAuction(stored);
             live.setStatus("RUNNING");
-            liveMap.put(live.getId(),live);
+            manager.getLiveMap().put(live.getId(),live);
             bidService.registerLive(live);// cùng objact với liveMap
         }
     }
     @Override
     public void finish(Auction auction){
         requireAuctionArg(auction);
-        synchronized (lock) {
+        synchronized (manager.getLock()) {
             Auction stored= requireStore(auction.getId());
             if(!"RUNNING".equals(stored.getStatus())){
                 throw new IllegalStateException("chỉ finish được phiên RUNNING");
             }
-            LiveAuction live= liveMap.get(stored.getId());
+            LiveAuction live= manager.getLiveMap().get(stored.getId());
             String winner= (live!=null)? live.getCurrentLeaderId() : null;
             double finalPrice=(live!=null)? live.getCurrentPrice(): stored.getCurrentPrice();
             List<Bid> bids= bidService.getBidHistory(stored.getId());
@@ -94,13 +101,14 @@ public class AuctionServiceImpl implements AuctionService {
             }
 
             bidService.unregisterLive(stored.getId());
-            liveMap.remove(stored.getId());
+            manager.getLiveMap().remove(stored.getId());
+            publisher.publishAuctionFinished(stored);//observer
         }
     }
     @Override
     public void cancel(Auction auction){
         requireAuctionArg(auction);
-        synchronized (lock) {
+        synchronized (manager.getLock()) {
             Auction stored= requireStore(auction.getId());
             if("FINISHED".equals(stored.getStatus())||"PAID".equals(stored.getStatus())){
                 throw new IllegalStateException("không cancel được phiên đã kết thúc");
@@ -108,9 +116,9 @@ public class AuctionServiceImpl implements AuctionService {
             List<Bid> bids=bidService.getBidHistory(stored.getId());
             stored.setStatus("CANCELED");
             refundAll(stored.getId(),bids,null);
-            if(liveMap.containsKey(stored.getId())){
+            if(manager.getLiveMap().containsKey(stored.getId())){
                 bidService.unregisterLive(stored.getId());
-                liveMap.remove(stored.getId());
+                manager.getLiveMap().remove(stored.getId());
             }
         }
     }
@@ -146,20 +154,35 @@ public class AuctionServiceImpl implements AuctionService {
         }
     }
     private Auction requireStore(String auctionId){
-        Auction a=store.get(auctionId);
+        Auction a=manager.getStore().get(auctionId);
         if(a==null) throw new IllegalArgumentException("Không tìm thấy phiên: " + auctionId);
         return a;
     }
     @Override
     public Optional<Auction> findById(String auctionId){
-        return Optional.ofNullable(store.get(auctionId));
+        return manager.findById(auctionId);
     }
     @Override
     public List<Auction> listAll(){
-        return new ArrayList<>(store.values());
+        return new ArrayList<>(manager.listAll());
     }
     @Override
     public Optional<LiveAuction> getLive(String auctionId){
-        return Optional.ofNullable(liveMap.get(auctionId));
+        return Optional.ofNullable(manager.getLiveMap().get(auctionId));
+    }
+
+    @Override
+    public  void updateEndTime(String auctionId, LocalDateTime newEndTime){
+        if (auctionId == null || newEndTime == null) {
+            throw new IllegalArgumentException("auctionId/endTime không hợp lệ");
+        }
+        synchronized (manager.getLock()) {
+            Auction stored = requireStore(auctionId);
+            stored.setEndTime(newEndTime);
+            LiveAuction live = manager.getLiveMap().get(auctionId);
+            if (live != null) {
+                live.setEndTime(newEndTime);
+            }
+        }
     }
 }

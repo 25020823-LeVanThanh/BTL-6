@@ -26,6 +26,9 @@ public class LiveAuction extends Auction {
                 auction.getStatus(),
                 auction.getStartTime(),
                 auction.getEndTime());
+        setDepositAmount(auction.getDepositAmount());
+        setAntiSnipingWindowSeconds(auction.getAntiSnipingWindowSeconds());
+        setAntiSnipingExtensionSeconds(auction.getAntiSnipingExtensionSeconds());
         this.bidHistory = new ArrayList<>();
         this.totalBids = 0;
         setCurrentPrice(auction.getCurrentPrice());
