@@ -72,15 +72,14 @@
 
                 <VBox fx:id="artBox" managed="false" spacing="10.0" visible="false">
                     <TextField fx:id="artistField" promptText="Tên Nghệ sĩ / Họa sĩ" />
-                    <TextField fx:id="artYearField" promptText="Năm sáng tác (VD: 2020)" />
+                    <TextField fx:id="yearCreatedField" promptText="Năm sáng tác (VD: 2020)" />
                     <TextField fx:id="mediumField" promptText="Chất liệu (VD: Sơn dầu, Màu nước)" />
                 </VBox>
 
                 <VBox fx:id="vehicleBox" managed="false" spacing="10.0" visible="false">
-                    <TextField fx:id="makeField" promptText="Hãng xe (VD: Toyota, Honda)" />
-                    <TextField fx:id="modelField" promptText="Dòng xe (VD: Camry, SH 150i)" />
-                    <TextField fx:id="mileageField" promptText="Số Km đã đi" />
-                    <TextField fx:id="vehicleYearField" promptText="Năm sản xuất" />
+                    <TextField fx:id="vehicleBrandField" promptText="Hãng xe (VD: Toyota, Honda)" />
+                    <TextField fx:id="manufactureYearField" promptText="Năm sản xuất" />
+                    <TextField fx:id="odoField" promptText="Số km đã đi (ODO)" />
                 </VBox>
 
                 <Label fx:id="statusLabel" styleClass="text-secondary" text="Vui lòng điền đầy đủ thông tin" />
