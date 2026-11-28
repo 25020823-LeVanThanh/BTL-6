@@ -145,13 +145,15 @@ auction-protocol/src/main/java/com/auctionuet/protocol/
 | `ItemDTO` | `id`, `type`, `name`, `description`, `startingPrice`, `condition`, `imageUrl`, `extraFields`, `approvalStatus`, … |
 | `ItemType` | `ELECTRONICS`, `ART`, `VEHICLE` |
 
-**`extraFields` keys khóa cứng**
+**`extraFields` keys khóa cứng** (đồng bộ model server Người 2 + `medium` cho ART)
 
-| Type | Keys |
-|------|------|
-| `ELECTRONICS` | `brand`, `warrantyMonths` |
-| `ART` | `artist`, `year`, `medium` |
-| `VEHICLE` | `make`, `model`, `mileage`, `vehicleYear` |
+| Type | Keys | Ghi chú |
+|------|------|---------|
+| `ELECTRONICS` | `brand`, `warrantyMonths` | Giữ nguyên — khớp `Electronics.java` |
+| `ART` | `artist`, `yearCreated`, **`medium`** | `yearCreated` = field model; **Người 2 thêm** `medium` vào `Art.java` |
+| `VEHICLE` | `brand`, `manufactureYear`, `odo` | Theo đúng `Vehicle.java` Người 2 (bỏ `make`/`model`/`mileage`/`vehicleYear`) |
+
+**Người 4 (UI):** `CreateItemController` / FXML gửi đúng key bảng trên (Vehicle: `brand`+`manufactureYear`+`odo`; Art: `yearCreated` thay `year`).
 
 ### Người 3
 
@@ -210,13 +212,14 @@ Admin: `AdminUserDTO`, `FinancialSummaryDTO`, `SystemMonitorDTO` + request filte
 
 **Domain (`ROLES.md` + đề)**
 - [ ] **`ItemFactory`** — Factory Method tạo `Art` / `Electronics` / `Vehicle`
+- [ ] **`Art.java`:** thêm field `medium` (+ getter/setter) cho khớp `extraFields`
 - [ ] `Product.setId(...)`
 - [ ] `ProductServiceImpl.create` ép `PENDING` + `@Service`
 - [ ] `CategoryServiceImpl` + `@Service`
 - [ ] `ProductSearchServiceImpl` dùng `ProductRepository` (không list inject)
-- [ ] Handler socket: `CREATE_ITEM`, duyệt approval
+- [ ] Handler socket: `CREATE_ITEM`, duyệt approval — map `extraFields` 1–1 theo bảng §4
 
-**Done:** Tạo item theo type qua Factory; admin duyệt; search/repo thật.
+**Done:** Tạo item theo type qua Factory; admin duyệt; search/repo thật; key extraFields khớp model.
 
 ---
 
@@ -286,9 +289,9 @@ Còn phải làm nốt:
 
 ```text
 Người 1: DTO auth/user/wallet + 5 RepositoryImpl JSON + @Service + register subclass
-Người 2: DTO item/duyệt + ItemFactory + setId/PENDING/search-repo
+Người 2: DTO item/duyệt + ItemFactory + Art.medium + setId/PENDING/search-repo
 Người 3: DTO auction/bid/push + nốt anti-sniping AUCTION_EXTENDED + Observer→socket
-Người 4: Envelope + ActionType + socket router + README + CI
+Người 4: Envelope + ActionType + socket router + README + CI; UI extraFields khớp §4 (P2)
 ```
 
 ---
