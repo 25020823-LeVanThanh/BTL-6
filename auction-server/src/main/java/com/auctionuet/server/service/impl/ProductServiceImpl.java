@@ -69,14 +69,30 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product updateProduct(String id, Product product) {
+    public Product updateProduct(String id, Product product, String currentUserId) {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("Invalid ID");
         }
         if (product == null) {
             throw new IllegalArgumentException("Invalid product");
         }
+        if (currentUserId == null || currentUserId.isBlank()) {
+            throw new IllegalArgumentException("Invalid current user ID");
+        }
         Product existingProduct = getProductById(id);
+        if (existingProduct.getSeller() == null) {
+            throw new IllegalStateException("Product has no seller");
+        }
+        String ownerId = existingProduct.getSeller().getId();
+        if (ownerId == null || ownerId.isBlank()) {
+            throw new IllegalStateException ("Product seller has invalid ID");
+        }
+        if(!ownerId.equals(currentUserId)) {
+            throw new SecurityException("You are not the owner of this product");
+        }
+        if (existingProduct.getStatus() != ProductStatus.PENDING) {
+            throw new IllegalStateException("Only pending products can be updated");
+        }
         if (product.getItem() == null ||
                 product.getItem().getName() == null ||
                 product.getItem().getName().isBlank()) {
