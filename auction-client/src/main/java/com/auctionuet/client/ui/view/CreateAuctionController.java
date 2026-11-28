@@ -321,14 +321,13 @@ public class CreateAuctionController {
             }
             case ART -> {
                 result.add(createPreviewField("Artist", fieldValue(fields, "artist"), false));
-                result.add(createPreviewField("Year", fieldValue(fields, "year"), false));
+                result.add(createPreviewField("Year created", fieldValue(fields, "yearCreated"), false));
                 result.add(createPreviewField("Medium", fieldValue(fields, "medium"), false));
             }
             case VEHICLE -> {
-                result.add(createPreviewField("Make", fieldValue(fields, "make"), false));
-                result.add(createPreviewField("Model", fieldValue(fields, "model"), false));
-                result.add(createPreviewField("Mileage", withUnit(fieldValue(fields, "mileage"), "km"), false));
-                result.add(createPreviewField("Vehicle year", fieldValue(fields, "vehicleYear"), false));
+                result.add(createPreviewField("Brand", fieldValue(fields, "brand"), false));
+                result.add(createPreviewField("Manufacture year", fieldValue(fields, "manufactureYear"), false));
+                result.add(createPreviewField("Odo", withUnit(fieldValue(fields, "odo"), "km"), false));
             }
         }
         return result;

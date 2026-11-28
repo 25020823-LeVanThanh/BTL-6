@@ -138,7 +138,7 @@ public class ItemHistoryController {
         return builder.toString();
     }
 
-    /** Đổi camelCase (vehicleYear) thành chữ có khoảng trắng để đọc trên UI. */
+    /** Đổi camelCase (manufactureYear) thành chữ có khoảng trắng để đọc trên UI. */
     private String formatExtraFieldName(String key) {
         if ("brand".equals(key)) {
             return "Brand";
@@ -146,8 +146,14 @@ public class ItemHistoryController {
         if ("warrantyMonths".equals(key)) {
             return "Warranty";
         }
-        if ("vehicleYear".equals(key)) {
-            return "Vehicle year";
+        if ("yearCreated".equals(key)) {
+            return "Year created";
+        }
+        if ("manufactureYear".equals(key)) {
+            return "Manufacture year";
+        }
+        if ("odo".equals(key)) {
+            return "Odo";
         }
 
         StringBuilder result = new StringBuilder();

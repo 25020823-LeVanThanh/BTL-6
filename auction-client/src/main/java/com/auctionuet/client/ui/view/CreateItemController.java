@@ -46,8 +46,8 @@ public class CreateItemController {
     @FXML private VBox electronicsBox, artBox, vehicleBox;
 
     @FXML private TextField brandField, warrantyField;
-    @FXML private TextField artistField, artYearField, mediumField;
-    @FXML private TextField makeField, modelField, mileageField, vehicleYearField;
+    @FXML private TextField artistField, yearCreatedField, mediumField;
+    @FXML private TextField vehicleBrandField, manufactureYearField, odoField;
 
     private Runnable successCallback;
 
@@ -180,14 +180,13 @@ public class CreateItemController {
             }
             case ART -> {
                 extraFields.put("artist", artistField.getText());
-                extraFields.put("year", artYearField.getText());
+                extraFields.put("yearCreated", yearCreatedField.getText());
                 extraFields.put("medium", mediumField.getText());
             }
             case VEHICLE -> {
-                extraFields.put("make", makeField.getText());
-                extraFields.put("model", modelField.getText());
-                extraFields.put("mileage", mileageField.getText());
-                extraFields.put("vehicleYear", vehicleYearField.getText());
+                extraFields.put("brand", vehicleBrandField.getText());
+                extraFields.put("manufactureYear", manufactureYearField.getText());
+                extraFields.put("odo", odoField.getText());
             }
         }
         return extraFields;
